@@ -75,8 +75,7 @@ private:
 
 	//FUNCTIONS FOR CHECKING LEGAL MOVES
 	template<bool white>
-	bool isLegalPawn(int rowFrom, int colFrom, 
-		int rMove, int cMove) {
+	bool isLegalPawn(int rMove, int cMove) {
 		// white pawns can only move up one row
 		// black pawns can only move down one row
 		const int dir = white ? 1 : -1;
@@ -92,21 +91,42 @@ private:
 		return false;
 	}
 
-	template<bool white>
-	bool isLegalRook(int rowFrom, int colFrom, 
-		int rMove, int cMove) {
+	bool isLegalRook(int rowFrom, int colFrom, int rMove, int cMove) {
 
 		// rooks only move col wise or row wise, not both
-		if (rMove != 0 && cMove != 0) {
-			return false;
+		if (rMove != 0) {
+			if (cMove == 0) {
+				int n = rowFrom + rMove; // inefficient, change later
+				for (int r = rowFrom; r < n; r++) {
+					if (get(r, colFrom) != Piece::EMPTY) {
+						return false;
+					}
+				}
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			if (cMove != 0) {
+				int n = colFrom + cMove; // inefficient, change later
+				for (int c = colFrom; c < n; c++) {
+					if (get(rowFrom, c) != Piece::EMPTY) {
+						return false;
+					}
+				}
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 
 
 	}
 
-	template<bool white>
-	bool isLegalKnight(int rowFrom, int colFrom, 
-		int rMove, int cMove) {
+	bool isLegalKnight(int rMove, int cMove) {
 
 		// knights move in both directions no matter what
 		if (rMove == 0 || cMove == 0) {
@@ -118,45 +138,45 @@ private:
 		// and 0 is ruled out
 		// so it must be
 		// 2 rows and 1 col or 1 row and 2 cols
-		if (abs(rMove) + abs(cMove) == 3) {
-
-		}
+		return (abs(rMove) + abs(cMove) == 3);
 	}
 
-	template<bool white>
-	bool isLegalBishop(int rowFrom, int colFrom, 
-		int rMove, int cMove) {
-
+	bool isLegalBishop(int rowFrom, int colFrom, int rMove, int cMove) {
+		// find if the number of moves
+		// horizontally is the same 
+		// as the number of moves vertically
+		return abs(rMove) == abs(cMove);
 	}
 
-	template<bool white>
-	bool isLegalQueen(int rowFrom, int colFrom, 
-		int rMove, int cMove) {
-
+	bool isLegalQueen(int rowFrom, int colFrom, int rMove, int cMove) {
+		// the queen moves like the bishop and the rook
+		return isLegalBishop(rowFrom, colFrom, rMove, cMove) || isLegalRook(rowFrom, colFrom, rMove, cMove);
 	}
 
-	template<bool white>
-	bool isLegalKing(int rowFrom, int colFrom, 
-		int rMove, int cMove) {
-
+	bool isLegalKing(int rMove, int cMove) {
+		// only one space
+		return abs(rMove) <= 1 && abs(cMove) <= 1;
 	}
 
 
 
-public:
-
-	bool correctRange(unsigned x) {
-		return (x < BOARD_SIDE_LENGTH);
-	}
-
-	
-	inline Piece& operator()(unsigned row, unsigned col) {
-		return get(row, col);
-	}
-
-	Board() {
-		memset(board, (int)Piece::EMPTY, BOARD_SIZE);
-		// set the board
+	/**
+	* Put all of the pieces in their starting positions. 
+	* Should look like this:
+	*         black
+	*    r n b q k b n r
+	*    p p p p p p p p
+	*    0 0 0 0 0 0 0 0
+	*    0 0 0 0 0 0 0 0
+	*    0 0 0 0 0 0 0 0
+	*    0 0 0 0 0 0 0 0
+	*    p p p p p p p p
+	*    r n b q k b n r
+	*         white
+	* This function doesn't use
+	* loops for the sake of efficiency.
+	*/
+	void startingPosition() {
 
 		// set the pawns
 		get(1, 0) = Piece::WHITE_PAWN;
@@ -197,7 +217,27 @@ public:
 		get(7, 6) = Piece::BLACK_KNIGHT;
 		get(7, 7) = Piece::BLACK_ROOK;
 
+	}
 
+
+
+public:
+
+	bool correctRange(unsigned x) {
+		return (x < BOARD_SIDE_LENGTH);
+	}
+
+	
+	inline Piece& operator()(unsigned row, unsigned col) {
+		return get(row, col);
+	}
+
+
+	
+	Board() {
+		memset(board, (int)Piece::EMPTY, BOARD_SIZE);
+		// set the board in starting position
+		startingPosition();
 	}
 
 	
@@ -221,7 +261,7 @@ public:
 			return false;
 		}
 
-		// make sure the piece locations exist on the board
+		// make sure the piece locations exist within the 8x8 range
 		if (correctRange((unsigned)rowFrom) && correctRange((unsigned)colFrom) &&
 			correctRange((unsigned)rowTo) && correctRange((unsigned)colTo)) {
 
@@ -243,38 +283,38 @@ public:
 			}
 
 			// check piece type, 
-			// then map to function
-			// that handles specific piece rules
+			// then map to function that
+			// handles specific piece rules
 			switch (pFrom)
 			{
 			case Piece::WHITE_PAWN:
-				return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalPawn<true>(rMove, cMove);
 			case Piece::WHITE_EN_PASSANTABLE_PAWN:
-				return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalPawn<true>(rMove, cMove);
 			case Piece::WHITE_ROOK:
-				return isLegalRook<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalRook(rowFrom, colFrom, rMove, cMove);
 			case Piece::WHITE_KNIGHT:
-				return isLegalKnight<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalKnight(rMove, cMove);
 			case Piece::WHITE_BISHOP:
-				return isLegalBishop<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalBishop(rowFrom, colFrom, rMove, cMove);
 			case Piece::WHITE_QUEEN:
-				return isLegalQueen<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalQueen(rowFrom, colFrom, rMove, cMove);
 			case Piece::WHITE_KING:
-				return isLegalKing<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalKing(rMove, cMove);
 			case Piece::BLACK_PAWN:
-				return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalPawn<true>(rMove, cMove);
 			case Piece::BLACK_EN_PASSANTABLE_PAWN:
-				return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalPawn<true>(rMove, cMove);
 			case Piece::BLACK_ROOK:
-				return isLegalRook<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalRook(rowFrom, colFrom, rMove, cMove);
 			case Piece::BLACK_KNIGHT:
-				return isLegalKnight<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalKnight(rMove, cMove);
 			case Piece::BLACK_BISHOP:
-				return isLegalBishop<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalBishop(rowFrom, colFrom, rMove, cMove);
 			case Piece::BLACK_QUEEN:
-				return isLegalQueen<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalQueen(rowFrom, colFrom, rMove, cMove);
 			case Piece::BLACK_KING:
-				return isLegalKing<true>(rowFrom, colFrom, rMove, cMove);
+				return isLegalKing(rMove, cMove);
 			default:
 				return false;
 			}
@@ -283,22 +323,24 @@ public:
 	}
 
 	/**
-	* Make a move on this board, return whether it was successful
+	* Make a move on this board
 	* whiteToMove: whether it is white's turn. 1 = white, 0 = black
 	* rowFrom: the current row of the piece
 	* colFrom: the current column of the piece
 	* rMove: how many rows to move
 	* cMove: how many columns to move
 	*/
-	bool makeMove(bool whiteToMove, 
-		int rowFrom, int colFrom, int rMove, int cMove) {
-		if (isLegalMove(whiteToMove, rowFrom, colFrom, rMove, cMove)) {
+	void makeMove(bool whiteToMove, 
+		int rowFrom, int colFrom, int rMove, int cMove, Piece promotionType = Piece::EMPTY) {
+		// check special rules like two pawn move and en passant
+		// check promotion
 
-		}
-		else {
-			return false;
-		}
+		// move piece
 	}
+
+	// makeMoveWithCheck
+
+	// makeMoveWithCheckReturnTaken
 
 
 };
