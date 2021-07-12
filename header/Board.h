@@ -11,6 +11,17 @@ const unsigned int BOARD_SIZE = 64;
 const unsigned int BOARD_SIDE_LENGTH = 8;
 
 
+// return the sign of integer x
+int sign(int x) {
+	if (x == 0) {
+		return 0;
+	}
+	else {
+		return (x > 0) ? 1 : -1;
+	}
+}
+
+
 enum class Piece {
 	EMPTY = 0,
 	WHITE_PAWN,
@@ -66,6 +77,14 @@ private:
 	// col |0|1|2|3|4|5|6|7|
 	//_____________________
 
+	bool wKingHasMoved = false;
+	bool wkRookHasMoved = false;
+	bool wqRookHasMoved = false;
+	bool bKingHasMoved = false;
+	bool bkRookHasMoved = false;
+	bool bqRookHasMoved = false;
+
+
 
 	// internally access the val at board location
 	__forceinline Piece& get(unsigned row, unsigned col) {
@@ -88,6 +107,9 @@ private:
 		else if (rMove == (dir * 2)) {
 			return cMove == 0;
 		}
+
+		// add en passant rule
+
 		return false;
 	}
 
@@ -128,33 +150,68 @@ private:
 
 	bool isLegalKnight(int rMove, int cMove) {
 
-		// knights move in both directions no matter what
+		// knights move in both horizontal and vertical
+		// directions no matter what
 		if (rMove == 0 || cMove == 0) {
 			return false;
 		}
 		
-		// 3 = 1 + 2
-		// or 3 = 3 + 0
-		// and 0 is ruled out
-		// so it must be
-		// 2 rows and 1 col or 1 row and 2 cols
+		// legal knight moves will have horizontal
+		// and vertical numbers of moves that
+		// add up to three squares total
+		// the case of 3 + 0 is ruled out already
 		return (abs(rMove) + abs(cMove) == 3);
 	}
 
 	bool isLegalBishop(int rowFrom, int colFrom, int rMove, int cMove) {
+
 		// find if the number of moves
 		// horizontally is the same 
 		// as the number of moves vertically
-		return abs(rMove) == abs(cMove);
+		if (abs(rMove) == abs(cMove)) {
+
+			// get the direction of movement
+			// horizontally and vertically
+			int r = sign(rMove);
+			int c = sign(cMove);
+
+			// search through spaces between the original and target spots
+			// return false if the path is not clear
+			// (if one of the squares is not empty)
+			for (int i = 0; i < rMove; i++) {
+
+				// check if the current square is empty
+				if (get(rowFrom + (i * r), colFrom + (i * c)) != Piece::EMPTY) {
+					return false;
+				}
+			}
+
+			// if the path is clear, the move is legal
+			return true;
+		}
+		else {
+
+			// bishops only move diagonally
+			// return false if they don't
+			return false;
+		}
 	}
 
 	bool isLegalQueen(int rowFrom, int colFrom, int rMove, int cMove) {
-		// the queen moves like the bishop and the rook
+
+		// the queen moves like the bishop and the rook combined
 		return isLegalBishop(rowFrom, colFrom, rMove, cMove) || isLegalRook(rowFrom, colFrom, rMove, cMove);
 	}
 
 	bool isLegalKing(int rMove, int cMove) {
-		// only one space
+
+		// add castling rule
+
+
+
+		// kings only move one space horizontally
+		// or vertically.
+		// the case of <0, 0> is ruled out
 		return abs(rMove) <= 1 && abs(cMove) <= 1;
 	}
 
@@ -223,17 +280,20 @@ private:
 
 public:
 
+	// can x be a real, valid board coordinate?
 	bool correctRange(unsigned x) {
 		return (x < BOARD_SIDE_LENGTH);
 	}
 
-	
+	// access the piece type of a location on the board
+	// by row and column
 	inline Piece& operator()(unsigned row, unsigned col) {
 		return get(row, col);
 	}
 
 
-	
+	// construct the board, set it in it's
+	// starting position
 	Board() {
 		memset(board, (int)Piece::EMPTY, BOARD_SIZE);
 		// set the board in starting position
@@ -323,19 +383,161 @@ public:
 	}
 
 	/**
-	* Make a move on this board
+	* Make a move on this board.
+	* It is assumed that the move is legal.
+	* 
 	* whiteToMove: whether it is white's turn. 1 = white, 0 = black
 	* rowFrom: the current row of the piece
 	* colFrom: the current column of the piece
 	* rMove: how many rows to move
 	* cMove: how many columns to move
 	*/
-	void makeMove(bool whiteToMove, 
+	void makeLegalMove(bool whiteToMove, 
 		int rowFrom, int colFrom, int rMove, int cMove, Piece promotionType = Piece::EMPTY) {
-		// check special rules like two pawn move and en passant
-		// check promotion
+		Piece pieceType = get(rowFrom, colFrom);
 
-		// move piece
+		// switch for handling special rules
+		switch (pieceType) {
+		case Piece::WHITE_PAWN:
+			// en passant
+			if (cMove == 1 &&
+				get(rowFrom, colFrom + 1) == Piece::BLACK_EN_PASSANTABLE_PAWN) {
+				get(rowFrom + 1, colFrom + 1) = Piece::WHITE_PAWN;
+				get(rowFrom, colFrom + 1) = Piece::EMPTY;
+				return;
+			}
+			if (cMove == -1 &&
+				get(rowFrom, colFrom - 1) == Piece::BLACK_EN_PASSANTABLE_PAWN) {
+				get(rowFrom + 1, colFrom - 1) = Piece::WHITE_PAWN;
+				get(rowFrom, colFrom - 1) = Piece::EMPTY;
+				return;
+			}
+
+			// promote
+			if (rowFrom == 7 && rMove == 1) {
+				get(rowFrom, colFrom) = Piece::EMPTY;
+				get(rowFrom + rMove, colFrom + cMove) = promotionType;
+				return;
+			}
+			break;
+
+		case Piece::BLACK_PAWN:
+			// en passant
+			if (cMove == 1 &&
+				get(rowFrom, colFrom + 1) == Piece::WHITE_EN_PASSANTABLE_PAWN) {
+				get(rowFrom - 1, colFrom + 1) = Piece::BLACK_PAWN;
+				get(rowFrom, colFrom + 1) = Piece::EMPTY;
+				return;
+			}
+			if (cMove == -1 &&
+				get(rowFrom, colFrom - 1) == Piece::WHITE_EN_PASSANTABLE_PAWN) {
+				get(rowFrom - 1, colFrom - 1) = Piece::BLACK_PAWN;
+				get(rowFrom, colFrom - 1) = Piece::EMPTY;
+				return;
+			}
+
+			// promote
+			if (rowFrom == 1 && rMove == -1) {
+				get(rowFrom, colFrom) = Piece::EMPTY;
+				get(rowFrom + rMove, colFrom + cMove) = promotionType;
+				return;
+			}
+			break;
+
+		case Piece::WHITE_KING:
+
+			// kingside castle
+			if (cMove == 2) {
+
+				// king didn't move and rook didn't move
+				if (!(wKingHasMoved || wkRookHasMoved)) {
+					wKingHasMoved = true;
+					wkRookHasMoved = true;
+					get(0, 4) = Piece::EMPTY;
+					get(0, 5) = Piece::WHITE_ROOK;
+					get(0, 6) = Piece::WHITE_KING;
+					get(0, 7) = Piece::EMPTY;
+					return;
+				}
+			}
+			// queenside castle
+			else if (cMove == -2) {
+
+				// king didn't move and rook didn't move
+				if (!(wKingHasMoved || wqRookHasMoved)) {
+					wKingHasMoved = true;
+					wqRookHasMoved = true;
+					get(0, 0) = Piece::EMPTY;
+					get(0, 1) = Piece::EMPTY;
+					get(0, 2) = Piece::WHITE_KING;
+					get(0, 3) = Piece::WHITE_ROOK;
+					get(0, 4) = Piece::EMPTY;
+					return;
+				}
+			}
+			wKingHasMoved = true;
+			break;
+
+		case Piece::BLACK_KING:
+
+			// kingside castle
+			if (cMove == 2) {
+
+				// king didn't move and rook didn't move
+				if (!(bKingHasMoved || bkRookHasMoved)) {
+					bKingHasMoved = true;
+					bkRookHasMoved = true;
+					get(7, 4) = Piece::EMPTY;
+					get(7, 5) = Piece::BLACK_ROOK;
+					get(7, 6) = Piece::BLACK_KING;
+					get(7, 7) = Piece::EMPTY;
+					return;
+				}
+			}
+			// queenside castle
+			else if (cMove == -2) {
+
+				// king didn't move and rook didn't move
+				if (!(bKingHasMoved || bqRookHasMoved)) {
+					bKingHasMoved = true;
+					bqRookHasMoved = true;
+					get(7, 0) = Piece::EMPTY;
+					get(7, 1) = Piece::EMPTY;
+					get(7, 2) = Piece::BLACK_KING;
+					get(7, 3) = Piece::BLACK_ROOK;
+					get(7, 4) = Piece::EMPTY;
+					return;
+				}
+			}
+			bKingHasMoved = true;
+			break;
+
+		case Piece::WHITE_ROOK:
+			if (rowFrom == 0) {
+				if (colFrom == 7) {
+					wkRookHasMoved = true;
+				}
+				else if (colFrom = 0) {
+					wqRookHasMoved = true;
+				}
+			}
+			break;
+
+		case Piece::BLACK_ROOK:
+			if (rowFrom == 7) {
+				if (colFrom == 7) {
+					bkRookHasMoved = true;
+				}
+				else if (colFrom = 0) {
+					bqRookHasMoved = true;
+				}
+			}
+			break;
+
+		}
+
+		get(rowFrom + rMove, colFrom + cMove) = get(rowFrom, colFrom);
+		get(rowFrom, colFrom) = Piece::EMPTY;
 	}
 
 	// makeMoveWithCheck
