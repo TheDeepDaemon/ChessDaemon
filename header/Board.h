@@ -94,21 +94,40 @@ private:
 
 	//FUNCTIONS FOR CHECKING LEGAL MOVES
 	template<bool white>
-	bool isLegalPawn(int rMove, int cMove) {
+	bool isLegalPawn(int rowFrom, int colFrom, 
+		int rMove, int cMove, bool landingOnOpposite) {
 		// white pawns can only move up one row
 		// black pawns can only move down one row
 		const int dir = white ? 1 : -1;
+
 		if (rMove == dir) {
-			// either left one, right one or no column move
-			return (cMove == 0 || 
-				((cMove == 1 || cMove == -1) && ()));
+			// stright unless taking a piece
+			if (cMove == 0) {
+				return true;
+			}
+			else {
+				if (landingOnOpposite) {
+					if (cMove == 1 || cMove == -1) {
+						return true;
+					}
+				}
+				else {
+
+					const Piece enPas = white ? 
+						Piece::BLACK_EN_PASSANTABLE_PAWN : Piece::WHITE_EN_PASSANTABLE_PAWN;
+
+					if ((cMove == 1 && get(rowFrom, colFrom + 1) == enPas) ||
+						(cMove == -1 && get(rowFrom, colFrom - 1) == enPas)) {
+						return true;
+					}
+				}
+				
+			}
 		}
 		// first pawn move means you can move two squares
 		else if (rMove == (dir * 2)) {
 			return cMove == 0;
 		}
-
-		// add en passant rule
 
 		return false;
 	}
@@ -203,15 +222,37 @@ private:
 		return isLegalBishop(rowFrom, colFrom, rMove, cMove) || isLegalRook(rowFrom, colFrom, rMove, cMove);
 	}
 
-	bool isLegalKing(int rMove, int cMove) {
+	template<bool white>
+	bool isLegalKing(int rowFrom, int colFrom, int rMove, int cMove) {
 
-		// add castling rule
+		const bool kingMoved = white ? wKingHasMoved : bKingHasMoved;
 
+		// castling
+		if (!kingMoved) {
+			const bool kingPiece = white ? Piece::WHITE_KING : Piece::BLACK_KING;
+			const bool rookPiece = white ? Piece::WHITE_ROOK : Piece::BLACK_ROOK;
+			const int rowToCheck = white ? 0 : 7;
 
+			// kingside castle
+			if (cMove == 2) {
+				const bool rookHasMoved = white ? wkRookHasMoved : bkRookHasMoved;
+
+				return !rookHasMoved &&
+					(get(rowToCheck, 3) == kingPiece && get(rowToCheck, 7) == rookPiece)
+			}
+			// queenside castle
+			else if (cMove == -2) {
+				const bool rookHasMoved = white ? wqRookHasMoved : bqRookHasMoved;
+
+				return !rookHasMoved &&
+					(get(rowToCheck, 3) == kingPiece && get(rowToCheck, 0) == rookPiece);
+			}
+		}
 
 		// kings only move one space horizontally
 		// or vertically.
-		// the case of <0, 0> is ruled out
+		// the case of <rMove, cMove> == <0, 0> 
+		// is ruled out already
 		return abs(rMove) <= 1 && abs(cMove) <= 1;
 	}
 
@@ -348,9 +389,9 @@ public:
 			switch (pFrom)
 			{
 			case Piece::WHITE_PAWN:
-				return isLegalPawn<true>(rMove, cMove);
+				return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, fromWhite != toWhite);
 			case Piece::WHITE_EN_PASSANTABLE_PAWN:
-				return isLegalPawn<true>(rMove, cMove);
+				return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, fromWhite != toWhite);
 			case Piece::WHITE_ROOK:
 				return isLegalRook(rowFrom, colFrom, rMove, cMove);
 			case Piece::WHITE_KNIGHT:
@@ -360,11 +401,11 @@ public:
 			case Piece::WHITE_QUEEN:
 				return isLegalQueen(rowFrom, colFrom, rMove, cMove);
 			case Piece::WHITE_KING:
-				return isLegalKing(rMove, cMove);
+				return isLegalKing<true>(rowFrom, colFrom, rMove, cMove);
 			case Piece::BLACK_PAWN:
-				return isLegalPawn<true>(rMove, cMove);
+				return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, fromWhite != toWhite);
 			case Piece::BLACK_EN_PASSANTABLE_PAWN:
-				return isLegalPawn<true>(rMove, cMove);
+				return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, fromWhite != toWhite);
 			case Piece::BLACK_ROOK:
 				return isLegalRook(rowFrom, colFrom, rMove, cMove);
 			case Piece::BLACK_KNIGHT:
@@ -374,7 +415,7 @@ public:
 			case Piece::BLACK_QUEEN:
 				return isLegalQueen(rowFrom, colFrom, rMove, cMove);
 			case Piece::BLACK_KING:
-				return isLegalKing(rMove, cMove);
+				return isLegalKing<false>(rowFrom, colFrom, rMove, cMove);
 			default:
 				return false;
 			}
