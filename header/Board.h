@@ -148,12 +148,15 @@ struct Board {
 	// not used for regular rook moves because you might intercept the wrong piece
 	template<bool vertical, int dir_>
 	Piece firstPieceInRookDir(int rowFrom, int colFrom) {
+		// make sure you are only incrementing one at a time
 		const int dir = int(0 < dir_) - int(dir_ < 0);
-		const int boundary = dir == 1 ? 8 : 0;
+
+		// set the proper range
+		const int boundary = dir == 1 ? 8 : -1;
 
 		// up and down rook movements
 		if (vertical) {
-			for (int i = rowFrom + dir; i < boundary; i += dir) {
+			for (int i = rowFrom + dir; i != boundary; i += dir) {
 				Piece p = get(i, colFrom);
 				if (p != Piece::EMPTY) {
 					return p;
@@ -162,7 +165,7 @@ struct Board {
 		}
 		// left and right rook movements
 		else {
-			for (int i = colFrom + dir; i < boundary; i += dir) {
+			for (int i = colFrom + dir; i != boundary; i += dir) {
 				Piece p = get(rowFrom, i);
 				if (p != Piece::EMPTY) {
 					return p;
@@ -245,16 +248,23 @@ struct Board {
 	// looks diagonally and returns the first piece in that direction
 	// used to detect if the king is in check
 	// not used for regular bishop moves because you might intercept the wrong piece
-	template<int rDir, int cDir>
+	template<int rDir_, int cDir_>
 	Piece firstPieceInBishopDir(int rowFrom, int colFrom) {
-		int rBoundary = rDir == 1 ? 8 : 0;
-		int cBoundary = cDir == 1 ? 8 : 0;
-		for (int r = rowFrom + rDir, c = colFrom + cDir; r < rBoundary, c < cBoundary; r+=rDir, c+=cDir) {
+		// make sure you are only incrementing one at a time
+		const int rDir = int(0 < rDir_) - int(rDir_ < 0);
+		const int cDir = int(0 < cDir_) - int(cDir_ < 0);
+
+		// set the proper range
+		const int rBoundary = rDir == 1 ? 8 : -1;
+		const int cBoundary = cDir == 1 ? 8 : -1;
+
+		for (int r = rowFrom + rDir, c = colFrom + cDir; r != rBoundary && c != cBoundary; r+=rDir, c+=cDir) {
 			Piece p = get(r, c);
 			if (p != Piece::EMPTY) {
 				return p;
 			}
 		}
+
 		return Piece::EMPTY;
 	}
 
@@ -632,7 +642,7 @@ struct Board {
 			// kingside castle
 			if (cMove == 2) {
 
-				// king didn't move and rook didn't move
+				// king didn't move and king's rook didn't move
 				if (!(wKingHasMoved || wkRookHasMoved)) {
 					wKingHasMoved = true;
 					wkRookHasMoved = true;
@@ -646,7 +656,7 @@ struct Board {
 			// queenside castle
 			else if (cMove == -2) {
 
-				// king didn't move and rook didn't move
+				// king didn't move and queen's rook didn't move
 				if (!(wKingHasMoved || wqRookHasMoved)) {
 					wKingHasMoved = true;
 					wqRookHasMoved = true;
@@ -666,7 +676,7 @@ struct Board {
 			// kingside castle
 			if (cMove == 2) {
 
-				// king didn't move and rook didn't move
+				// king didn't move and king's rook didn't move
 				if (!(bKingHasMoved || bkRookHasMoved)) {
 					bKingHasMoved = true;
 					bkRookHasMoved = true;
@@ -680,7 +690,7 @@ struct Board {
 			// queenside castle
 			else if (cMove == -2) {
 
-				// king didn't move and rook didn't move
+				// king didn't move and queen's rook didn't move
 				if (!(bKingHasMoved || bqRookHasMoved)) {
 					bKingHasMoved = true;
 					bqRookHasMoved = true;
