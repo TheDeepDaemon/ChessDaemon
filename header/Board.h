@@ -55,8 +55,7 @@ bool pieceIsBlack(Piece p) {
 * Board class:
 *	contains the pieces
 */
-class Board {
-private:
+struct Board {
 	
 	// array with all board locations in it
 	// contiguous for efficiency
@@ -92,7 +91,18 @@ private:
 	}
 
 
-	//FUNCTIONS FOR CHECKING LEGAL MOVES
+
+	// FUNCTIONS FOR CHECKING LEGAL MOVES
+
+	template<bool white>
+	bool isPawnAttacking(int rowFrom, int colFrom) {
+		const int rowDir = white ? 1 : -1;
+		const Piece p = white ? Piece::BLACK_PAWN : Piece::WHITE_PAWN;
+
+		return (get(rowDir, 1) == p || get(rowDir, -1) == p);
+	}
+
+	
 	template<bool white>
 	bool isLegalPawn(int rowFrom, int colFrom, 
 		int rMove, int cMove, bool landingOnOpposite) {
@@ -132,6 +142,37 @@ private:
 		return false;
 	}
 
+	// looks horizontally or vertically and 
+	// returns the first piece in that direction
+	// used to detect if the king is in check
+	// not used for regular rook moves because you might intercept the wrong piece
+	template<bool vertical, int dir_>
+	Piece firstPieceInRookDir(int rowFrom, int colFrom) {
+		const int dir = int(0 < dir_) - int(dir_ < 0);
+		const int boundary = dir == 1 ? 8 : 0;
+
+		// up and down rook movements
+		if (vertical) {
+			for (int i = rowFrom + dir; i < boundary; i += dir) {
+				Piece p = get(i, colFrom);
+				if (p != Piece::EMPTY) {
+					return p;
+				}
+			}
+		}
+		// left and right rook movements
+		else {
+			for (int i = colFrom + dir; i < boundary; i += dir) {
+				Piece p = get(rowFrom, i);
+				if (p != Piece::EMPTY) {
+					return p;
+				}
+			}
+		}
+		return Piece::EMPTY;
+	}
+
+	// check if it is a legal rook move
 	bool isLegalRook(int rowFrom, int colFrom, int rMove, int cMove) {
 
 		// rooks only move col wise or row wise, not both
@@ -167,6 +208,24 @@ private:
 
 	}
 
+	// return whether a knight is attacking this square
+	template<bool white>
+	bool knightIsAttacking(int rowFrom, int colFrom) {
+		Piece knight = white ? Piece::BLACK_KNIGHT : Piece::WHITE_KNIGHT;
+
+		// look for L shapes
+		return 
+			(get(rowFrom+1, colFrom+2) == knight) ||
+			(get(rowFrom+2, colFrom+1) == knight) || 
+			(get(rowFrom+2, colFrom-1) == knight) || 
+			(get(rowFrom+1, colFrom-2) == knight) || 
+			(get(rowFrom-1, colFrom-2) == knight) || 
+			(get(rowFrom-2, colFrom-1) == knight) || 
+			(get(rowFrom-2, colFrom+1) == knight) || 
+			(get(rowFrom-1, colFrom+2) == knight);
+	}
+
+	// check if this move is a legal knight move
 	bool isLegalKnight(int rMove, int cMove) {
 
 		// knights move in both horizontal and vertical
@@ -182,6 +241,24 @@ private:
 		return (abs(rMove) + abs(cMove) == 3);
 	}
 
+
+	// looks diagonally and returns the first piece in that direction
+	// used to detect if the king is in check
+	// not used for regular bishop moves because you might intercept the wrong piece
+	template<int rDir, int cDir>
+	Piece firstPieceInBishopDir(int rowFrom, int colFrom) {
+		int rBoundary = rDir == 1 ? 8 : 0;
+		int cBoundary = cDir == 1 ? 8 : 0;
+		for (int r = rowFrom + rDir, c = colFrom + cDir; r < rBoundary, c < cBoundary; r+=rDir, c+=cDir) {
+			Piece p = get(r, c);
+			if (p != Piece::EMPTY) {
+				return p;
+			}
+		}
+		return Piece::EMPTY;
+	}
+
+	// is this a legal bishop move
 	bool isLegalBishop(int rowFrom, int colFrom, int rMove, int cMove) {
 
 		// find if the number of moves
@@ -197,7 +274,7 @@ private:
 			// search through spaces between the original and target spots
 			// return false if the path is not clear
 			// (if one of the squares is not empty)
-			for (int i = 0; i < rMove; i++) {
+			for (int i = 1; i < rMove; i++) {
 
 				// check if the current square is empty
 				if (get(rowFrom + (i * r), colFrom + (i * c)) != Piece::EMPTY) {
@@ -318,8 +395,8 @@ private:
 	}
 
 
+	// public
 
-public:
 
 	// can x be a real, valid board coordinate?
 	bool correctRange(unsigned x) {
@@ -345,14 +422,16 @@ public:
 
 
 	/**
-	* Check if a move is legal
+	* Check if a move is legal. 
+	* Doesn't check to see if the king is in check.
+	* 
 	* whiteToMove: whether it is white's turn. 1 = white, 0 = black
 	* rowFrom: the current row of the piece
 	* colFrom: the current column of the piece
 	* rMove: how many rows to move
 	* cMove: how many columns to move
 	*/
-	bool isLegalMove(bool whiteToMove,
+	bool isLegalMoveNoCheck(bool whiteToMove,
 		int rowFrom, int colFrom, int rMove, int cMove) {
 		int rowTo = rowFrom + rMove;
 		int colTo = colFrom + cMove;
@@ -423,6 +502,69 @@ public:
 		}
 	}
 
+	// return if piece is one of two pieces
+	bool isOneOfThese(Piece pToCheck, Piece p1, Piece p2) {
+		return (pToCheck == p1 || pToCheck == p2);
+	}
+
+	template<bool white>
+	bool isKingInCheck(int kingRow, int kingCol) {
+
+		// look for bishop movement
+		const Piece bishop = white ? Piece::BLACK_BISHOP : Piece::WHITE_BISHOP;
+		const Piece queen = white ? Piece::BLACK_QUEEN : Piece::WHITE_QUEEN;
+
+		// can you move a bishop from the king's
+		// location to the location of a queen or bishop?
+		// if so, the king is in check
+		if (isOneOfThese(firstPieceInBishopDir<1, 1>(kingRow, kingCol), bishop, queen)) {
+			return true;
+		}
+		else if (isOneOfThese(firstPieceInBishopDir<-1, 1>(kingRow, kingCol), bishop, queen)) {
+			return true;
+		}
+		else if (isOneOfThese(firstPieceInBishopDir<-1, -1>(kingRow, kingCol), bishop, queen)) {
+			return true;
+		}
+		else if (isOneOfThese(firstPieceInBishopDir<1, -1>(kingRow, kingCol), bishop, queen)) {
+			return true;
+		}
+
+
+		// look for rook movement
+		const Piece rook = white ? Piece::BLACK_ROOK : Piece::WHITE_ROOK;
+
+		if (isOneOfThese(firstPieceInBishopDir<true, 1>(kingRow, kingCol), rook, queen)) {
+			return true;
+		}
+		else if (isOneOfThese(firstPieceInBishopDir<true, -1>(kingRow, kingCol), rook, queen)) {
+			return true;
+		}
+		else if (isOneOfThese(firstPieceInBishopDir<false, 1>(kingRow, kingCol), rook, queen)) {
+			return true;
+		}
+		else if (isOneOfThese(firstPieceInBishopDir<false, -1>(kingRow, kingCol), rook, queen)) {
+			return true;
+		}
+
+
+		// look for knight
+		if (knightIsAttacking<white>(kingRow, kingCol)) {
+			return true;
+		}
+
+
+
+		// look for pawn
+		if (isPawnAttacking<white>(kingRow, kingCol)) {
+			return true;
+		}
+
+
+		return false;
+	}
+
+	
 	/**
 	* Make a move on this board.
 	* It is assumed that the move is legal.
