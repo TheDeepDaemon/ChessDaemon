@@ -316,8 +316,8 @@ struct Board {
 
 		// castling
 		if (!kingMoved) {
-			const bool kingPiece = white ? Piece::WHITE_KING : Piece::BLACK_KING;
-			const bool rookPiece = white ? Piece::WHITE_ROOK : Piece::BLACK_ROOK;
+			const Piece kingPiece = white ? Piece::WHITE_KING : Piece::BLACK_KING;
+			const Piece rookPiece = white ? Piece::WHITE_ROOK : Piece::BLACK_ROOK;
 			const int rowToCheck = white ? 0 : 7;
 
 			// kingside castle
@@ -325,14 +325,14 @@ struct Board {
 				const bool rookHasMoved = white ? wkRookHasMoved : bkRookHasMoved;
 
 				return !rookHasMoved &&
-					(get(rowToCheck, 3) == kingPiece && get(rowToCheck, 7) == rookPiece)
+					((get(rowToCheck, 3) == kingPiece) && (get(rowToCheck, 7) == rookPiece));
 			}
 			// queenside castle
 			else if (cMove == -2) {
 				const bool rookHasMoved = white ? wqRookHasMoved : bqRookHasMoved;
 
 				return !rookHasMoved &&
-					(get(rowToCheck, 3) == kingPiece && get(rowToCheck, 0) == rookPiece);
+					((get(rowToCheck, 3) == kingPiece) && (get(rowToCheck, 0) == rookPiece));
 			}
 		}
 
