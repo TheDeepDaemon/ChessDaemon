@@ -142,7 +142,7 @@ bool System::isMouseReleased() {
 
 
 void System::init() {
-    newGameObject<GamePiece>("piece", "gamepiece.png", 128, 128, 400, 400);
+    newGameObject<GamePiece>("piece", "gamepiece.png", 500, 500, 400, 400);
 }
 
 

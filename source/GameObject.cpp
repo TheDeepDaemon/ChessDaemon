@@ -7,16 +7,17 @@ using namespace std;
 
 GameObject::GameObject(const std::string& filePath,
     int sizeX, int sizeY, int posX, int posY) {
-    sf::Texture texture;
-    if (!texture.loadFromFile(filePath))
+    sf::Texture* texture = new sf::Texture();
+    if (!texture->loadFromFile(filePath))
     {
         cout << "ERROR - File " << filePath << " not loaded.";
     }
-    sprite = new sf::Sprite(texture, sf::IntRect(posX, posY, sizeX, sizeY));
-    sprite->setPosition(posX, posY);
+    sprite = new sf::Sprite(*texture);
+    sprite->setScale(sizeX / sprite->getLocalBounds().width, sizeY / sprite->getLocalBounds().height);
 }
 
 GameObject::~GameObject() {
+    delete texture;
     delete sprite;
 }
 

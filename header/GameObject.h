@@ -6,15 +6,16 @@
 
 struct GameObject {
 	sf::Sprite* sprite = nullptr;
-
-	virtual void start() = 0;
-
-	virtual void update(float deltaTime) = 0;
+	sf::Texture* texture = nullptr;
 
 	GameObject(const std::string& filePath,
 		int sizeX, int sizeY, int posX, int posY);
 
 	~GameObject();
+
+	virtual void start() = 0;
+
+	virtual void update(float deltaTime) = 0;
 
 };
 
