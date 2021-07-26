@@ -1,5 +1,7 @@
 #include"System.h"
 #include<iostream>
+#include<cstdint>
+#include"GameObject.h"
 
 
 using namespace std;
@@ -7,10 +9,17 @@ using namespace std;
 
 
 System::System(int width, int height) {
-    mainWindow = new sf::Window(sf::VideoMode(width, height), "ChessDaemon");
+    mainWindow = new sf::RenderWindow(sf::VideoMode(width, height), "ChessDaemon");
 }
 
 System::~System() {
+
+    for (std::unordered_map<std::string, GameObject*>::iterator it = sprites.begin();
+        it != sprites.end(); ++it) {
+        GameObject* gameObj = it->second;
+        delete gameObj;
+    }
+
     delete mainWindow;
 }
 
@@ -54,35 +63,59 @@ void System::updateMousePosition() {
 
 
 void System::updateInputs() {
+    mouseInfo.isBeingPressedDown = false;
+    mouseInfo.released = false;
     pollEvents();
     updateMousePressed();
+    updateMousePosition();
 }
 
 
-void System::update() {
-
+void System::update(float deltaTime) {
+    for (std::unordered_map<std::string, GameObject*>::iterator it = sprites.begin();
+        it != sprites.end(); ++it) {
+        GameObject* gameObj = it->second;
+        gameObj->update(deltaTime);
+    }
 }
 
 
 void System::display() {
-
+    for (std::unordered_map<std::string, GameObject*>::iterator it = sprites.begin();
+        it != sprites.end(); ++it) {
+        GameObject* gameObj = it->second;
+        mainWindow->draw(*(gameObj->sprite));
+    }
 }
 
 
 void System::run() {
-    float frameTime = 1 / FPS;
+    int64_t frameTime = 1000000 / (int64_t)FPS;
 
     sf::Clock clock;
+
+    sf::Clock runtime;
+    runtime.restart();
+    float lastUpdate = 0.0f;
 
     while (mainWindow->isOpen()) {
         clock.restart();
         updateInputs();
-        update();
+        update(runtime.getElapsedTime().asSeconds() - lastUpdate);
+        lastUpdate = runtime.getElapsedTime().asSeconds();
         display();
 
 
-        while (clock.getElapsedTime().asSeconds() < frameTime) {
+        while (clock.getElapsedTime().asMicroseconds() < frameTime) {
         }
     }
 }
 
+
+
+
+void System::newGameObject(const std::string& name, const std::string& filePath, 
+    int sizeX, int sizeY, int posX, int posY) {
+    GameObject* go = new GameObject(filePath, sizeX, sizeY, posX, posY);
+    sprites.insert(pair<string, GameObject*>(name, go));
+}

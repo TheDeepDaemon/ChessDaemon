@@ -1,6 +1,10 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 #include<SFML/Graphics.hpp>
+#include<string>
+#include<unordered_map>
+
+struct GameObject;
 
 
 struct System {
@@ -14,13 +18,11 @@ struct System {
 
     } mouseInfo;
 
-    sf::Window* mainWindow = nullptr;
+    sf::RenderWindow* mainWindow = nullptr;
 
     const int FPS = 60;
 
-    std::vector<sf::Sprite> objects;
-
-
+    std::unordered_map<std::string, GameObject*> sprites;
 
     System(int width, int height);
     ~System();
@@ -34,11 +36,15 @@ struct System {
 
     void updateInputs();
 
-    void update();
+    void update(float deltaTime);
 
     void display();
 
     void run();
+
+    void newGameObject(const std::string& name, const std::string& filePath,
+        int sizeX, int sizeY, int posX=0, int posY=0);
+
 
 };
 
