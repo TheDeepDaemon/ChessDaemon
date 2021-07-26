@@ -4,25 +4,37 @@
 #include<string>
 #include<unordered_map>
 
+
 struct GameObject;
 
 
 struct System {
-    struct {
-        bool isBeingPressedDown = false;
-        bool isCurrentlyPressed = false;
-        bool released = false;
+private:
+    // true if the left mouse button
+    // goes from up to down
+    bool mouseBeingPressedDown = false;
 
-        int xPos = 0;
-        int yPos = 0;
+    // true if the left mouse button is down, period
+    bool mouseCurrentlyPressed = false;
 
-    } mouseInfo;
+    // true if the left mouse button goes from down to up
+    bool mouseReleased = false;
 
+    // mouse position in window
+    int mouseX = 0;
+    int mouseY = 0;
+
+    // main window for rendering everything in
     sf::RenderWindow* mainWindow = nullptr;
 
+    // frames per second
     const int FPS = 60;
 
-    std::unordered_map<std::string, GameObject*> sprites;
+    // all game objects that are shown in the window
+    std::unordered_map<std::string, GameObject*> gameObjects;
+
+
+public:
 
     System(int width, int height);
     ~System();
@@ -42,8 +54,15 @@ struct System {
 
     void run();
 
+    template<typename T>
     void newGameObject(const std::string& name, const std::string& filePath,
         int sizeX, int sizeY, int posX=0, int posY=0);
+
+    GameObject* getGameObject(const std::string& name);
+
+    bool isMousePressed();
+    bool isMouseHeld();
+    bool isMouseReleased();
 
 
 };

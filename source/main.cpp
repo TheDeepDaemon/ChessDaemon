@@ -9,17 +9,20 @@ using namespace std;
 
 
 
+void runSystem() {
+	System* system = new System(1600, 1200);
 
-
-
-int main() {
-
-	System* system = new System(800, 600);
-	
 	system->run();
 
 	cin.get();
 	delete system;
+}
 
+
+int main() {
+
+
+	
+	cin.get();
 	return 0;
 }

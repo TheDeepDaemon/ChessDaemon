@@ -87,7 +87,7 @@ struct Board {
 
 	// internally access the val at board location
 	__forceinline Piece& get(unsigned row, unsigned col) {
-		return *(board + (row * BOARD_SIDE_LENGTH) + col);
+		return *(board + ((uint64_t)row * BOARD_SIDE_LENGTH) + (uint64_t)col);
 	}
 
 
@@ -710,7 +710,7 @@ struct Board {
 				if (colFrom == 7) {
 					wkRookHasMoved = true;
 				}
-				else if (colFrom = 0) {
+				else if (colFrom == 0) {
 					wqRookHasMoved = true;
 				}
 			}
@@ -721,7 +721,7 @@ struct Board {
 				if (colFrom == 7) {
 					bkRookHasMoved = true;
 				}
-				else if (colFrom = 0) {
+				else if (colFrom == 0) {
 					bqRookHasMoved = true;
 				}
 			}

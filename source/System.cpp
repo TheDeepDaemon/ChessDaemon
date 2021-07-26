@@ -12,10 +12,11 @@ System::System(int width, int height) {
     mainWindow = new sf::RenderWindow(sf::VideoMode(width, height), "ChessDaemon");
 }
 
+
 System::~System() {
 
-    for (std::unordered_map<std::string, GameObject*>::iterator it = sprites.begin();
-        it != sprites.end(); ++it) {
+    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
+        it != gameObjects.end(); ++it) {
         GameObject* gameObj = it->second;
         delete gameObj;
     }
@@ -36,12 +37,12 @@ void System::pollEvents() {
             break;
         case sf::Event::MouseButtonPressed:
             if (event.mouseButton.button == sf::Mouse::Button::Left) {
-                mouseInfo.isBeingPressedDown = true;
+                mouseBeingPressedDown = true;
             }
             break;
         case sf::Event::MouseButtonReleased:
             if (event.mouseButton.button == sf::Mouse::Button::Left) {
-                mouseInfo.released = true;
+                mouseReleased = true;
             }
             break;
         }
@@ -51,20 +52,20 @@ void System::pollEvents() {
 
 
 void System::updateMousePressed() {
-    mouseInfo.isCurrentlyPressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+    mouseCurrentlyPressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
 }
 
 
 void System::updateMousePosition() {
     sf::Vector2i pos = sf::Mouse::getPosition(*mainWindow);
-    mouseInfo.xPos = pos.x;
-    mouseInfo.yPos = pos.y;
+    mouseX = pos.x;
+    mouseY = pos.y;
 }
 
 
 void System::updateInputs() {
-    mouseInfo.isBeingPressedDown = false;
-    mouseInfo.released = false;
+    mouseBeingPressedDown = false;
+    mouseReleased = false;
     pollEvents();
     updateMousePressed();
     updateMousePosition();
@@ -72,8 +73,8 @@ void System::updateInputs() {
 
 
 void System::update(float deltaTime) {
-    for (std::unordered_map<std::string, GameObject*>::iterator it = sprites.begin();
-        it != sprites.end(); ++it) {
+    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
+        it != gameObjects.end(); ++it) {
         GameObject* gameObj = it->second;
         gameObj->update(deltaTime);
     }
@@ -81,8 +82,8 @@ void System::update(float deltaTime) {
 
 
 void System::display() {
-    for (std::unordered_map<std::string, GameObject*>::iterator it = sprites.begin();
-        it != sprites.end(); ++it) {
+    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
+        it != gameObjects.end(); ++it) {
         GameObject* gameObj = it->second;
         mainWindow->draw(*(gameObj->sprite));
     }
@@ -113,9 +114,28 @@ void System::run() {
 
 
 
-
+template<typename T>
 void System::newGameObject(const std::string& name, const std::string& filePath, 
     int sizeX, int sizeY, int posX, int posY) {
-    GameObject* go = new GameObject(filePath, sizeX, sizeY, posX, posY);
-    sprites.insert(pair<string, GameObject*>(name, go));
+    T* go = new T(filePath, sizeX, sizeY, posX, posY);
+    gameObjects.insert(pair<string, GameObject*>(name, go));
 }
+
+
+GameObject* System::getGameObject(const std::string& name) {
+    return gameObjects[name];
+}
+
+
+bool System::isMousePressed() {
+    return mouseBeingPressedDown;
+}
+
+bool System::isMouseHeld() {
+    return mouseCurrentlyPressed;
+}
+
+bool System::isMouseReleased() {
+    return mouseReleased;
+}
+
