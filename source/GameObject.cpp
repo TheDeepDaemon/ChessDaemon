@@ -13,8 +13,10 @@ GameObject::GameObject(const std::string& filePath,
         cout << "ERROR - File " << filePath << " not loaded.";
     }
     sprite = new sf::Sprite(texture, sf::IntRect(posX, posY, sizeX, sizeY));
+    sprite->setPosition(posX, posY);
 }
 
 GameObject::~GameObject() {
     delete sprite;
 }
+

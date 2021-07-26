@@ -2,6 +2,7 @@
 #include<iostream>
 #include<cstdint>
 #include"GameObject.h"
+#include"GamePiece.h"
 
 
 using namespace std;
@@ -72,21 +73,17 @@ void System::updateInputs() {
 }
 
 
-void System::update(float deltaTime) {
-    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
-        it != gameObjects.end(); ++it) {
-        GameObject* gameObj = it->second;
-        gameObj->update(deltaTime);
-    }
-}
+
 
 
 void System::display() {
+    mainWindow->clear(sf::Color::Black);
     for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
         it != gameObjects.end(); ++it) {
         GameObject* gameObj = it->second;
         mainWindow->draw(*(gameObj->sprite));
     }
+    mainWindow->display();
 }
 
 
@@ -98,6 +95,8 @@ void System::run() {
     sf::Clock runtime;
     runtime.restart();
     float lastUpdate = 0.0f;
+
+    start();
 
     while (mainWindow->isOpen()) {
         clock.restart();
@@ -139,3 +138,28 @@ bool System::isMouseReleased() {
     return mouseReleased;
 }
 
+
+
+
+void System::init() {
+    newGameObject<GamePiece>("piece", "gamepiece.png", 128, 128, 400, 400);
+}
+
+
+void System::start() {
+    init();
+    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
+        it != gameObjects.end(); ++it) {
+        GameObject* gameObj = it->second;
+        gameObj->start();
+    }
+}
+
+
+void System::update(float deltaTime) {
+    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
+        it != gameObjects.end(); ++it) {
+        GameObject* gameObj = it->second;
+        gameObj->update(deltaTime);
+    }
+}

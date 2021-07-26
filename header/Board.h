@@ -2,6 +2,7 @@
 #define BOARD_H
 #include<cstdint>
 #include<cmath>
+#include<iostream>
 
 // global constants for chess
 // global usually isn't good practice, 
@@ -40,6 +41,48 @@ enum class Piece {
 	BLACK_KING,
 	NUM_PIECE_TYPES
 };
+
+
+
+char pieceMap(Piece p) {
+	switch (p) {
+	case Piece::EMPTY:
+		return ' ';
+	case Piece::WHITE_PAWN:
+		return 'p';
+	case Piece::WHITE_EN_PASSANTABLE_PAWN:
+		return 'p';
+	case Piece::WHITE_ROOK:
+		return 'r';
+	case Piece::WHITE_KNIGHT:
+		return 'n';
+	case Piece::WHITE_BISHOP:
+		return 'b';
+	case Piece::WHITE_QUEEN:
+		return 'q';
+	case Piece::WHITE_KING:
+		return 'k';
+	case Piece::BLACK_PAWN:
+		return 'p';
+	case Piece::BLACK_EN_PASSANTABLE_PAWN:
+		return 'p';
+	case Piece::BLACK_ROOK:
+		return 'r';
+	case Piece::BLACK_KNIGHT:
+		return 'n';
+	case Piece::BLACK_BISHOP:
+		return 'b';
+	case Piece::BLACK_QUEEN:
+		return 'q';
+	case Piece::BLACK_KING:
+		return 'k';
+	case Piece::NUM_PIECE_TYPES:
+		return '-';
+	default:
+		return ' ';
+	}
+}
+
 
 
 bool pieceIsWhite(Piece p) {
@@ -429,6 +472,15 @@ struct Board {
 	}
 
 	
+	void displayToConsole() {
+		for (int i = BOARD_SIDE_LENGTH-1; i >= 0; i--) {
+			for (int j = 0; j < BOARD_SIDE_LENGTH; j++) {
+				std::cout << pieceMap(get(i, j)) << '|';
+			}
+			std::cout << '\n';
+		}
+	}
+
 
 
 	/**

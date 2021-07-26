@@ -48,6 +48,10 @@ public:
 
     void updateInputs();
 
+    void init();
+
+    void start();
+
     void update(float deltaTime);
 
     void display();
