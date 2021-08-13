@@ -12,8 +12,13 @@ GameObject::GameObject(const std::string& filePath,
     {
         cout << "ERROR - File " << filePath << " not loaded.";
     }
+
     sprite = new sf::Sprite(*texture);
-    sprite->setScale(sizeX / sprite->getLocalBounds().width, sizeY / sprite->getLocalBounds().height);
+
+    pos = sf::Vector2f(posX, posY);
+    size = sf::Vector2f(sizeX, sizeY);
+    updateSprite();
+    
 }
 
 GameObject::~GameObject() {
@@ -21,3 +26,7 @@ GameObject::~GameObject() {
     delete sprite;
 }
 
+void GameObject::updateSprite() {
+    sprite->setScale(size.x / sprite->getLocalBounds().width, size.x / sprite->getLocalBounds().height);
+    sprite->setPosition(pos - (size / 2.0f));
+}

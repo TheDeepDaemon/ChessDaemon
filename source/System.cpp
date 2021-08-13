@@ -7,10 +7,23 @@
 
 using namespace std;
 
+System* System::instance = nullptr;
 
 
 System::System(int width, int height) {
     mainWindow = new sf::RenderWindow(sf::VideoMode(width, height), "ChessDaemon");
+}
+
+
+void System::initInstance(int width, int height) {
+    if (instance == nullptr) {
+        instance = new System(width, height);
+    }
+}
+
+
+System* System::getInstance() {
+    return instance;
 }
 
 
@@ -23,6 +36,7 @@ System::~System() {
     }
 
     delete mainWindow;
+    instance = nullptr;
 }
 
 
@@ -74,17 +88,6 @@ void System::updateInputs() {
 
 
 
-
-
-void System::display() {
-    mainWindow->clear(sf::Color::Black);
-    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
-        it != gameObjects.end(); ++it) {
-        GameObject* gameObj = it->second;
-        mainWindow->draw(*(gameObj->sprite));
-    }
-    mainWindow->display();
-}
 
 
 void System::run() {
@@ -142,7 +145,7 @@ bool System::isMouseReleased() {
 
 
 void System::init() {
-    newGameObject<GamePiece>("piece", "gamepiece.png", 500, 500, 400, 400);
+    newGameObject<GamePiece>("piece", "gamepiece.png", 64, 64, 400, 400);
 }
 
 
@@ -163,3 +166,21 @@ void System::update(float deltaTime) {
         gameObj->update(deltaTime);
     }
 }
+
+
+void System::display() {
+    mainWindow->clear(sf::Color::Black);
+    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
+        it != gameObjects.end(); ++it) {
+        GameObject* gameObj = it->second;
+        gameObj->updateSprite();
+        mainWindow->draw(*(gameObj->sprite));
+    }
+    mainWindow->display();
+}
+
+
+sf::Vector2i System::getMousePos() { 
+    return sf::Vector2i(mouseX, mouseY); 
+}
+

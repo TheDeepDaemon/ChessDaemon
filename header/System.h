@@ -10,6 +10,8 @@ struct GameObject;
 
 struct System {
 private:
+    static System* instance;
+
     // true if the left mouse button
     // goes from up to down
     bool mouseBeingPressedDown = false;
@@ -33,11 +35,18 @@ private:
     // all game objects that are shown in the window
     std::unordered_map<std::string, GameObject*> gameObjects;
 
+    System(int width, int height);
+
 
 public:
 
-    System(int width, int height);
+    static void initInstance(int width, int height);
+
+    static System* getInstance();
+    
     ~System();
+
+
 
 
     void pollEvents();
@@ -67,6 +76,7 @@ public:
     bool isMousePressed();
     bool isMouseHeld();
     bool isMouseReleased();
+    sf::Vector2i getMousePos();
 
 
 };

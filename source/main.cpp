@@ -11,7 +11,8 @@ using namespace std;
 
 int main() {
 
-	System* system = new System(1600, 1200);
+	System::initInstance(1600, 1200);
+	System* system = System::getInstance();
 
 	system->run();
 
