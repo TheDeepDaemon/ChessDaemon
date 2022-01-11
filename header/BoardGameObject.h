@@ -1,17 +1,39 @@
-#ifndef BOARD_IMAGE_H
-#define BOARD_IMAGE_H
+#ifndef BOARD_GO_H
+#define BOARD_GO_H
 #include"GameObject.h"
+
+class ChessBoard;
+class PieceSprites;
+class GamePiece;
 
 
 struct BoardGameObject : public GameObject {
 
-	BoardGameObject(const std::string& filePath,
-		int sizeX, int sizeY, int posX, int posY);
+	ChessBoard* board;
 
-	void start();
+	PieceSprites* pieceSprites;
 
-	void update(float deltaTime);
+	bool mouseDown = false;
+
+	sf::Vector2i prevPos;
+
+	BoardGameObject(const string& filePath,
+		float sizeX, float sizeY, float posX, float posY);
+
+	void draw();
+
+	void postDraw();
+
+	void update();
+
+	Vector2f getBoardSize();
+
+	Vector2f getBoardEdge();
+
+	pair<bool, sf::Vector2i> getGridPos(Vector2f pos);
+
+	void showLegalMoves(int row, int col);
 
 };
 
-#endif
+#endif // !BOARD_GO_H

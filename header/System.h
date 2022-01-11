@@ -1,11 +1,11 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
-#include<SFML/Graphics.hpp>
-#include<string>
-#include<unordered_map>
+#include"headers.h"
 
-
+class Sprite;
 struct GameObject;
+struct Board;
+class PieceTextures;
 
 
 struct System {
@@ -14,13 +14,13 @@ private:
 
     // true if the left mouse button
     // goes from up to down
-    bool mouseBeingPressedDown = false;
+    bool mouseDown = false;
 
-    // true if the left mouse button is down, period
+    // true if the left mouse button is currently down
     bool mouseCurrentlyPressed = false;
 
     // true if the left mouse button goes from down to up
-    bool mouseReleased = false;
+    bool mouseUp = false;
 
     // mouse position in window
     int mouseX = 0;
@@ -32,22 +32,31 @@ private:
     // frames per second
     const int FPS = 60;
 
-    // all game objects that are shown in the window
-    std::unordered_map<std::string, GameObject*> gameObjects;
+    // all sprites in the game, store references 
+    // so that they can be deleted
+    vector<Sprite*> spriteCollection;
 
-    System(int width, int height);
+    // all game objects that are shown in the window
+    unordered_map<string, GameObject*> gameObjects;
+
+    // the gameboard contains all board information
+    Board* gameBoard = nullptr;
+
+    // create the system
+    System();
 
 
 public:
 
-    static void initInstance(int width, int height);
+    static void initInstance();
 
     static System* getInstance();
+
+    static void addSprite(Sprite* sprite);
     
     ~System();
 
-
-
+    sf::Vector2u getScreenSize();
 
     void pollEvents();
 
@@ -59,19 +68,21 @@ public:
 
     void init();
 
-    void start();
-
-    void update(float deltaTime);
-
     void display();
+
+    static void drawSprite(sf::Sprite* sprite);
 
     void run();
 
     template<typename T>
-    void newGameObject(const std::string& name, const std::string& filePath,
-        int sizeX, int sizeY, int posX=0, int posY=0);
+    GameObject* newGameObject(const string& name, const string& filePath,
+        float sizeX=1.0f, float sizeY=1.0f, float posX=0.0f, float posY=0.0f);
 
-    GameObject* getGameObject(const std::string& name);
+    template<typename T>
+    GameObject* newGameObject(const string& name, const string& filePath,
+        float sizeX=1.0f, float sizeY=1.0f, const Vector2f& pos = Vector2f(0, 0));
+
+    GameObject* getGameObject(const string& name);
 
     bool isMousePressed();
     bool isMouseHeld();

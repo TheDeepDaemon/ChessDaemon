@@ -1,23 +1,25 @@
+#include"headers.h"
 #include"System.h"
-#include<iostream>
-#include<cstdint>
 #include"GameObject.h"
-#include"GamePiece.h"
+#include"BoardGameObject.h"
+#include"util.h"
 
 
-using namespace std;
+
 
 System* System::instance = nullptr;
 
 
-System::System(int width, int height) {
-    mainWindow = new sf::RenderWindow(sf::VideoMode(width, height), "ChessDaemon");
+// initialize the main window when creating the system
+System::System() {
+    mainWindow = new sf::RenderWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "ChessDaemon");
 }
 
 
-void System::initInstance(int width, int height) {
+// call the constructor internally, since it is a singleton
+void System::initInstance() {
     if (instance == nullptr) {
-        instance = new System(width, height);
+        instance = new System();
     }
 }
 
@@ -26,22 +28,45 @@ System* System::getInstance() {
     return instance;
 }
 
+void System::addSprite(Sprite* sprite) {
+    if (instance != nullptr) {
+        instance->spriteCollection.push_back(sprite);
+    }
+}
+
 
 System::~System() {
+    unordered_map<string, GameObject*>::iterator it;
 
-    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
-        it != gameObjects.end(); ++it) {
+    // delete all game objects before deleting the system
+    for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
         GameObject* gameObj = it->second;
         delete gameObj;
+        gameObj = nullptr;
     }
 
+    for (size_t i = 0; i < spriteCollection.size(); i++) {
+        delete spriteCollection[i];
+    }
+
+    spriteCollection.clear();
+
+    
+    // delete the window
     delete mainWindow;
+    mainWindow = nullptr;
+
+    // set the single instance to null
     instance = nullptr;
 }
 
 
+sf::Vector2u System::getScreenSize() {
+    return mainWindow->getSize();
+}
 
 
+// go through events and respond accordingly
 void System::pollEvents() {
     sf::Event event;
     while (mainWindow->pollEvent(event))
@@ -52,12 +77,12 @@ void System::pollEvents() {
             break;
         case sf::Event::MouseButtonPressed:
             if (event.mouseButton.button == sf::Mouse::Button::Left) {
-                mouseBeingPressedDown = true;
+                mouseDown = true;
             }
             break;
         case sf::Event::MouseButtonReleased:
             if (event.mouseButton.button == sf::Mouse::Button::Left) {
-                mouseReleased = true;
+                mouseUp = true;
             }
             break;
         }
@@ -78,36 +103,31 @@ void System::updateMousePosition() {
 }
 
 
+// update variables that keep track of inputs
 void System::updateInputs() {
-    mouseBeingPressedDown = false;
-    mouseReleased = false;
+    mouseDown = false;
+    mouseUp = false;
     pollEvents();
     updateMousePressed();
     updateMousePosition();
 }
 
 
-
-
-
+// call this function to run the system
 void System::run() {
+
+    // divide number of microseconds by number of frames
     int64_t frameTime = 1000000 / (int64_t)FPS;
 
     sf::Clock clock;
 
-    sf::Clock runtime;
-    runtime.restart();
-    float lastUpdate = 0.0f;
+    init();
 
-    start();
-
+    // this is the main game loop
     while (mainWindow->isOpen()) {
         clock.restart();
         updateInputs();
-        update(runtime.getElapsedTime().asSeconds() - lastUpdate);
-        lastUpdate = runtime.getElapsedTime().asSeconds();
         display();
-
 
         while (clock.getElapsedTime().asMicroseconds() < frameTime) {
         }
@@ -117,20 +137,29 @@ void System::run() {
 
 
 template<typename T>
-void System::newGameObject(const std::string& name, const std::string& filePath, 
-    int sizeX, int sizeY, int posX, int posY) {
+GameObject* System::newGameObject(const string& name, const string& filePath, 
+    float sizeX, float sizeY, float posX, float posY) {
     T* go = new T(filePath, sizeX, sizeY, posX, posY);
     gameObjects.insert(pair<string, GameObject*>(name, go));
+    return go;
+}
+
+template<typename T>
+GameObject* System::newGameObject(const string& name, const string& filePath,
+    float sizeX, float sizeY, const Vector2f& pos) {
+    T* go = new T(filePath, sizeX, sizeY, pos.x, pos.y);
+    gameObjects.insert(pair<string, GameObject*>(name, go));
+    return go;
 }
 
 
-GameObject* System::getGameObject(const std::string& name) {
+GameObject* System::getGameObject(const string& name) {
     return gameObjects[name];
 }
 
 
 bool System::isMousePressed() {
-    return mouseBeingPressedDown;
+    return mouseDown;
 }
 
 bool System::isMouseHeld() {
@@ -138,44 +167,47 @@ bool System::isMouseHeld() {
 }
 
 bool System::isMouseReleased() {
-    return mouseReleased;
+    return mouseUp;
 }
-
-
 
 
 void System::init() {
-    newGameObject<GamePiece>("piece", "gamepiece.png", 64, 64, 400, 400);
+    
+    Vector2f boardPos = fractionToLoc(0.5, 0.5);
+    GameObject* board = newGameObject<BoardGameObject>("board", "board.jpeg", 1024, 1024, boardPos);
+
+
 }
 
 
-void System::start() {
-    init();
-    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
-        it != gameObjects.end(); ++it) {
-        GameObject* gameObj = it->second;
-        gameObj->start();
+
+
+void System::drawSprite(sf::Sprite* sprite) {
+    if (instance != nullptr && sprite != nullptr) {
+        instance->mainWindow->draw(*(sprite));
     }
 }
 
 
-void System::update(float deltaTime) {
-    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
-        it != gameObjects.end(); ++it) {
-        GameObject* gameObj = it->second;
-        gameObj->update(deltaTime);
-    }
-}
 
-
+// draw all game objects to the screen
 void System::display() {
-    mainWindow->clear(sf::Color::Black);
-    for (std::unordered_map<std::string, GameObject*>::iterator it = gameObjects.begin();
-        it != gameObjects.end(); ++it) {
-        GameObject* gameObj = it->second;
-        gameObj->updateSprite();
-        mainWindow->draw(*(gameObj->sprite));
+
+    // update gameobjects before displaying
+    unordered_map<string, GameObject*>::iterator it;
+    for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+        it->second->update();
     }
+
+    // clear screen before displaying
+    mainWindow->clear(sf::Color::Black);
+
+    // go through each game object and draw it
+    for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+        it->second->draw();
+    }
+
+    // display to the screen
     mainWindow->display();
 }
 
