@@ -74,7 +74,7 @@ void BoardGameObject::showLegalMoves(int row, int col) {
 
 	for (int i = 0; i < BOARD_SIDE_LENGTH; i++) {
 		for (int j = 0; j < BOARD_SIDE_LENGTH; j++) {
-			if (board->isLegalMoveNoCheck(true, row, col, i, j)) {
+			if (board->isLegalMoveNoCheck(true, row, col, i - row, j - col)) {
 				Vector2f pos = boardToScreenPos(i, j, boardEdge, cellSize);
 				spr->draw(pos);
 			}
@@ -114,7 +114,7 @@ void BoardGameObject::postDraw() {
 		Vector2f mousePos = Vector2f(sys->getMousePos());
 		pSpr->draw(mousePos.x, mousePos.y);
 
-		showLegalMoves(prevPos.x, prevPos.y);
+		showLegalMoves(prevPos.y, prevPos.x);
 
 	}
 

@@ -417,6 +417,7 @@ void ChessBoard::displayToConsole() {
 	*/
 bool ChessBoard::isLegalMoveNoCheck(bool whiteToMove,
 	int rowFrom, int colFrom, int rMove, int cMove) {
+
 	int rowTo = rowFrom + rMove;
 	int colTo = colFrom + cMove;
 
