@@ -162,22 +162,25 @@ void BoardGameObject::update() {
 			// if the mouse drops the piece on the board
 			if (mouseGridPos.first) {
 
+				int rowTo = mouseGridPos.second.y;
+				int colTo = mouseGridPos.second.x;
+
+				int row = prevPos.y;
+				int col = prevPos.x;
+
 				// check if legal move
 				// if it is, drop a piece there
-				
-				/*
-				if (board->isLegalMove()) {
-					int colTo = mouseGridPos.second.x;
-					int rowTo = mouseGridPos.second.y;
+				if (board->isLegalMoveNoCheck(true, row, col, rowTo - row, colTo - col)) {
 
 					int colPrev = prevPos.x;
 					int rowPrev = prevPos.y;
 
+					//board->get(rowTo, colTo) = board->get(rowPrev, colPrev);
+					//board->get(rowPrev, colPrev) = ChessPiece::EMPTY;
 
-					board->get(rowTo, colTo) = board->get(rowPrev, colPrev);
-					board->get(rowPrev, colPrev) = ChessPiece::EMPTY;
+					board->makeLegalMove(true, row, col, rowTo - row, colTo - col);
 					
-				}*/
+				}
 			}
 
 			mouseDown = false;

@@ -104,7 +104,7 @@ bool ChessBoard::isLegalPawn(int rowFrom, int colFrom, int rMove, int cMove, boo
 		}
 	}
 	// first pawn move means you can move two squares
-	else if (rMove == (dir * 2)) {
+	else if (rMove == (dir * 2) && ((white && rowFrom == 1) || (!white && rowFrom == 6))) {
 		return cMove == 0;
 	}
 
@@ -447,15 +447,17 @@ bool ChessBoard::isLegalMoveNoCheck(bool whiteToMove,
 			return false;
 		}
 
+
+
 		// check piece type, 
 		// then map to function that
 		// handles specific piece rules
 		switch (pFrom)
 		{
 		case ChessPiece::WHITE_PAWN:
-			return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, fromWhite != toWhite);
+			return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, pieceIsBlack(get(rowTo, colTo)));
 		case ChessPiece::WHITE_EN_PASSANTABLE_PAWN:
-			return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, fromWhite != toWhite);
+			return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, pieceIsBlack(get(rowTo, colTo)));
 		case ChessPiece::WHITE_ROOK:
 			return isLegalRook(rowFrom, colFrom, rMove, cMove);
 		case ChessPiece::WHITE_KNIGHT:
@@ -467,9 +469,9 @@ bool ChessBoard::isLegalMoveNoCheck(bool whiteToMove,
 		case ChessPiece::WHITE_KING:
 			return isLegalKing<true>(rowFrom, colFrom, rMove, cMove);
 		case ChessPiece::BLACK_PAWN:
-			return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, fromWhite != toWhite);
+			return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, pieceIsWhite(get(rowTo, colTo)));
 		case ChessPiece::BLACK_EN_PASSANTABLE_PAWN:
-			return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, fromWhite != toWhite);
+			return isLegalPawn<true>(rowFrom, colFrom, rMove, cMove, pieceIsWhite(get(rowTo, colTo)));
 		case ChessPiece::BLACK_ROOK:
 			return isLegalRook(rowFrom, colFrom, rMove, cMove);
 		case ChessPiece::BLACK_KNIGHT:
