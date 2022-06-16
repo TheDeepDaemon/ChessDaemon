@@ -3,7 +3,7 @@
 #include"GameObject.h"
 #include"BoardGameObject.h"
 #include"util.h"
-
+#include<random>
 
 
 
@@ -36,10 +36,8 @@ void System::addSprite(Sprite* sprite) {
 
 
 System::~System() {
-    unordered_map<string, GameObject*>::iterator it;
-
     // delete all game objects before deleting the system
-    for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+    for (auto it = gameObjects.begin(); it != gameObjects.end(); ++it) {
         GameObject* gameObj = it->second;
         delete gameObj;
         gameObj = nullptr;
@@ -68,20 +66,20 @@ sf::Vector2u System::getScreenSize() {
 
 // go through events and respond accordingly
 void System::pollEvents() {
-    sf::Event event;
-    while (mainWindow->pollEvent(event))
+    sf::Event event_;
+    while (mainWindow->pollEvent(event_))
     {
-        switch (event.type) {
+        switch (event_.type) {
         case sf::Event::Closed:
             mainWindow->close();
             break;
         case sf::Event::MouseButtonPressed:
-            if (event.mouseButton.button == sf::Mouse::Button::Left) {
+            if (event_.mouseButton.button == sf::Mouse::Button::Left) {
                 mouseDown = true;
             }
             break;
         case sf::Event::MouseButtonReleased:
-            if (event.mouseButton.button == sf::Mouse::Button::Left) {
+            if (event_.mouseButton.button == sf::Mouse::Button::Left) {
                 mouseUp = true;
             }
             break;
@@ -97,9 +95,7 @@ void System::updateMousePressed() {
 
 
 void System::updateMousePosition() {
-    sf::Vector2i pos = sf::Mouse::getPosition(*mainWindow);
-    mouseX = pos.x;
-    mouseY = pos.y;
+    mousePos = sf::Mouse::getPosition(*mainWindow);
 }
 
 
@@ -148,13 +144,18 @@ template<typename T>
 GameObject* System::newGameObject(const string& name, const string& filePath,
     float sizeX, float sizeY, const Vector2f& pos) {
     T* go = new T(filePath, sizeX, sizeY, pos.x, pos.y);
-    gameObjects.insert(pair<string, GameObject*>(name, go));
+    gameObjects.push_back(pair<string, GameObject*>(name, go));
     return go;
 }
 
 
 GameObject* System::getGameObject(const string& name) {
-    return gameObjects[name];
+    for (auto it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+        if (it->first == name) {
+            return it->second;
+        }
+    }
+    return nullptr;
 }
 
 
@@ -171,11 +172,13 @@ bool System::isMouseReleased() {
 }
 
 
+
+
+
 void System::init() {
     
     Vector2f boardPos = fractionToLoc(0.5, 0.5);
     GameObject* board = newGameObject<BoardGameObject>("board", "board.jpeg", 1024, 1024, boardPos);
-
 
 }
 
@@ -194,8 +197,7 @@ void System::drawSprite(sf::Sprite* sprite) {
 void System::display() {
 
     // update gameobjects before displaying
-    unordered_map<string, GameObject*>::iterator it;
-    for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+    for (auto it = gameObjects.begin(); it != gameObjects.end(); ++it) {
         it->second->update();
     }
 
@@ -203,7 +205,9 @@ void System::display() {
     mainWindow->clear(sf::Color::Black);
 
     // go through each game object and draw it
-    for (it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+    for (auto it = gameObjects.begin(); it != gameObjects.end(); ++it) {
+        sf::Clock clock;
+        clock.restart();
         it->second->draw();
     }
 
@@ -212,7 +216,7 @@ void System::display() {
 }
 
 
-sf::Vector2i System::getMousePos() { 
-    return sf::Vector2i(mouseX, mouseY); 
+sf::Vector2i System::getMousePos() {
+    return mousePos;
 }
 

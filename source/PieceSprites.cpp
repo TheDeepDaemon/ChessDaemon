@@ -16,10 +16,7 @@ PieceSprites::PieceSprites(float sizeX, float sizeY) : sprites((size_t)ChessPiec
 	sprites[(size_t)ChessPiece::WHITE_ROOK] = new Sprite("white rook.png", pieceSizeX, pieceSizeY, centrd);
 	sprites[(size_t)ChessPiece::WHITE_BISHOP] = new Sprite("white bishop.png", pieceSizeX, pieceSizeY, centrd);
 	sprites[(size_t)ChessPiece::WHITE_KNIGHT] = new Sprite("white knight.png", pieceSizeX, pieceSizeY, centrd);
-
-	Sprite* pawn = new Sprite("white pawn.png", pieceSizeX, pieceSizeY, centrd);
-	sprites[(size_t)ChessPiece::WHITE_PAWN] = pawn;
-	sprites[(size_t)ChessPiece::WHITE_EN_PASSANTABLE_PAWN] = pawn;
+	sprites[(size_t)ChessPiece::WHITE_PAWN] = new Sprite("white pawn.png", pieceSizeX, pieceSizeY, centrd);
 
 
 	sprites[(size_t)ChessPiece::BLACK_KING] = new Sprite("black king.png", pieceSizeX, pieceSizeY, centrd);
@@ -27,10 +24,7 @@ PieceSprites::PieceSprites(float sizeX, float sizeY) : sprites((size_t)ChessPiec
 	sprites[(size_t)ChessPiece::BLACK_ROOK] = new Sprite("black rook.png", pieceSizeX, pieceSizeY, centrd);
 	sprites[(size_t)ChessPiece::BLACK_BISHOP] = new Sprite("black bishop.png", pieceSizeX, pieceSizeY, centrd);
 	sprites[(size_t)ChessPiece::BLACK_KNIGHT] = new Sprite("black knight.png", pieceSizeX, pieceSizeY, centrd);
-
-	pawn = new Sprite("black pawn.png", pieceSizeX, pieceSizeY, centrd);
-	sprites[(size_t)ChessPiece::BLACK_PAWN] = pawn;
-	sprites[(size_t)ChessPiece::BLACK_EN_PASSANTABLE_PAWN] = pawn;
+	sprites[(size_t)ChessPiece::BLACK_PAWN] = new Sprite("black pawn.png", pieceSizeX, pieceSizeY, centrd);
 	
 
 }

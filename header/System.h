@@ -23,21 +23,21 @@ private:
     bool mouseUp = false;
 
     // mouse position in window
-    int mouseX = 0;
-    int mouseY = 0;
+    sf::Vector2i mousePos = sf::Vector2i(0, 0);
 
     // main window for rendering everything in
     sf::RenderWindow* mainWindow = nullptr;
+    sf::RenderTexture* canvas = nullptr;
 
     // frames per second
     const int FPS = 60;
 
-    // all sprites in the game, store references 
+    // all sprites in the game, store references
     // so that they can be deleted
     vector<Sprite*> spriteCollection;
 
     // all game objects that are shown in the window
-    unordered_map<string, GameObject*> gameObjects;
+    vector<pair<string, GameObject*>> gameObjects;
 
     // the gameboard contains all board information
     Board* gameBoard = nullptr;

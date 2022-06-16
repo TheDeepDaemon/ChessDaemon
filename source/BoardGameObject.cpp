@@ -8,28 +8,32 @@
 using sf::Vector2i;
 
 
-BoardGameObject::BoardGameObject(const string& filePath,
-	float sizeX, float sizeY, float posX, float posY) :
-	GameObject(filePath, sizeX, sizeY, posX, posY) {
-	board = new ChessBoard();
-	Vector2f boardSize = getSprSize();
-	boardSize = boardSize - (boardSize * (float)Constants::BOARD_EDGE);
-	Vector2f cellSize = boardSize / (float)BOARD_SIDE_LENGTH;
-	pieceSprites = new PieceSprites(cellSize.x, cellSize.y);
+PieceSprites* createPieceSprites(const Vector2f& boardSize) {
+	Vector2f temp = boardSize - (boardSize * (float)Constants::BOARD_EDGE);
+	Vector2f cellSize = temp / (float)BOARD_SIDE_LENGTH;
+	return new PieceSprites(cellSize.x, cellSize.y);
 }
 
 
-void print(string name, Vector2f vec) {
+BoardGameObject::BoardGameObject(const string& filePath,
+	float sizeX, float sizeY, float posX, float posY) :
+	GameObject(filePath, sizeX, sizeY, posX, posY), board(new ChessBoard()),
+	pieceSprites(createPieceSprites(getSprSize())) {
+	movesContainer.reserve(Constants::BOARD_SIZE);
+}
+
+
+inline void print(const string& name, const Vector2f& vec) {
 	cout << name << " = <" << vec.x << ", " << vec.y << ">\n";
 }
 
 
-void print(string name, float x, float y) {
+inline void print(const string& name, const float x, const float y) {
 	print(name, Vector2f(x, y));
 }
 
 
-void print(string name, Vector2i vec) {
+inline void print(const string& name, const Vector2i& vec) {
 	cout << name << " = <" << vec.x << ", " << vec.y << ">\n";
 }
 
@@ -48,9 +52,10 @@ Vector2f BoardGameObject::getBoardEdge() {
 
 
 
-inline Vector2f boardToScreenPos(int row, int col, Vector2f boardEdge, Vector2f cellSize) {
-	float gridX = col;
-	float gridY = BOARD_SIDE_LENGTH - row - 1;
+inline Vector2f boardToScreenPos(
+	const int row, const int col, const Vector2f boardEdge, const Vector2f cellSize) {
+	float gridX = (float)col;
+	float gridY = (float)BOARD_SIDE_LENGTH - row - 1;
 	float pieceX = (cellSize.x / 2) + boardEdge.x + (gridX * cellSize.x);
 	float pieceY = (cellSize.y / 2) + boardEdge.y + (gridY * cellSize.y);
 	return Vector2f(pieceX, pieceY);
@@ -59,8 +64,19 @@ inline Vector2f boardToScreenPos(int row, int col, Vector2f boardEdge, Vector2f 
 
 
 
+void BoardGameObject::isInCheck() {
+	if (board->isKingInCheck<true>()) {
+		cout << "White in check\n";
+	}
+	if (board->isKingInCheck<false>()) {
+		cout << "Black in check\n";
+	}
+}
 
-void BoardGameObject::showLegalMoves(int row, int col) {
+
+
+
+void BoardGameObject::showLegalMoves(const int row, const int col) {
 	Vector2f boardSize = getBoardSize();
 
 	// the top left edge of the board
@@ -74,7 +90,7 @@ void BoardGameObject::showLegalMoves(int row, int col) {
 
 	for (int i = 0; i < BOARD_SIDE_LENGTH; i++) {
 		for (int j = 0; j < BOARD_SIDE_LENGTH; j++) {
-			if (board->isLegalMoveNoCheck(true, row, col, i - row, j - col)) {
+			if (board->isLegalMoveNoCheck(row, col, i, j)) {
 				Vector2f pos = boardToScreenPos(i, j, boardEdge, cellSize);
 				spr->draw(pos);
 			}
@@ -98,7 +114,7 @@ void BoardGameObject::postDraw() {
 
 	for (int i = 0; i < BOARD_SIDE_LENGTH; i++) {
 		for (int j = 0; j < BOARD_SIDE_LENGTH; j++) {
-			if (!mouseDown || mouseDown && prevPos != Vector2i(j, i)) {
+			if (!mouseDown || (mouseDown && (prevPos != Vector2i(j, i)))) {
 				ChessPiece piece = board->get(i, j);
 				if (piece != ChessPiece::EMPTY) {
 					Sprite* pSpr = pieceSprites->get(piece);
@@ -111,18 +127,20 @@ void BoardGameObject::postDraw() {
 	if (mouseDown) {
 		ChessPiece piece = board->get(prevPos.y, prevPos.x);
 		Sprite* pSpr = pieceSprites->get(piece);
-		Vector2f mousePos = Vector2f(sys->getMousePos());
-		pSpr->draw(mousePos.x, mousePos.y);
+		if (pSpr != nullptr) {
+			Vector2f mousePos = Vector2f(sys->getMousePos());
+			pSpr->draw(mousePos.x, mousePos.y);
 
-		showLegalMoves(prevPos.y, prevPos.x);
+			showLegalMoves(prevPos.y, prevPos.x);
+		}
 
 	}
 
 }
 
 
-
-pair<bool, Vector2i> BoardGameObject::getGridPos(Vector2f pos) {
+// screen position to board position
+pair<bool, Vector2i> BoardGameObject::getGridPos(const Vector2f& pos) {
 
 	Vector2f boardEdge = getBoardEdge();
 	Vector2f boardSize = getBoardSize();
@@ -135,7 +153,8 @@ pair<bool, Vector2i> BoardGameObject::getGridPos(Vector2f pos) {
 
 		Vector2f cellSize = boardSize / (float)BOARD_SIDE_LENGTH;
 		Vector2i gridPos = Vector2i(
-			posOnBoard.x / cellSize.x, posOnBoard.y / cellSize.y);
+			int(posOnBoard.x / cellSize.x),
+			int(posOnBoard.y / cellSize.y));
 
 		// double check to make sure 
 		// the square on the board exists
@@ -168,17 +187,17 @@ void BoardGameObject::update() {
 				int row = prevPos.y;
 				int col = prevPos.x;
 
+				//cout << "________________\n";
+
 				// check if legal move
 				// if it is, drop a piece there
-				if (board->isLegalMoveNoCheck(true, row, col, rowTo - row, colTo - col)) {
+				if (board->isLegalMoveNoCheck(row, col, rowTo, colTo)) {
 
 					int colPrev = prevPos.x;
 					int rowPrev = prevPos.y;
 
-					//board->get(rowTo, colTo) = board->get(rowPrev, colPrev);
-					//board->get(rowPrev, colPrev) = ChessPiece::EMPTY;
-
-					board->makeLegalMove(true, row, col, rowTo - row, colTo - col);
+					board->makeLegalMove(row, col, rowTo, colTo);
+					isInCheck();
 					
 				}
 			}

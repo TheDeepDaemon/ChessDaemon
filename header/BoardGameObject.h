@@ -1,6 +1,8 @@
 #ifndef BOARD_GO_H
 #define BOARD_GO_H
 #include"GameObject.h"
+#include<memory>
+#include"BoardPosition.h"
 
 class ChessBoard;
 class PieceSprites;
@@ -9,9 +11,11 @@ class GamePiece;
 
 struct BoardGameObject : public GameObject {
 
-	ChessBoard* board;
+	std::unique_ptr<ChessBoard> board;
 
-	PieceSprites* pieceSprites;
+	std::unique_ptr<PieceSprites> pieceSprites;
+
+	std::vector<BoardPosition> movesContainer;
 
 	bool mouseDown = false;
 
@@ -19,8 +23,6 @@ struct BoardGameObject : public GameObject {
 
 	BoardGameObject(const string& filePath,
 		float sizeX, float sizeY, float posX, float posY);
-
-	void draw();
 
 	void postDraw();
 
@@ -30,9 +32,11 @@ struct BoardGameObject : public GameObject {
 
 	Vector2f getBoardEdge();
 
-	pair<bool, sf::Vector2i> getGridPos(Vector2f pos);
+	pair<bool, sf::Vector2i> getGridPos(const Vector2f& pos);
 
-	void showLegalMoves(int row, int col);
+	void showLegalMoves(const int row, const int col);
+
+	void isInCheck();
 
 };
 

@@ -21,4 +21,9 @@ using Constants::SCREEN_HEIGHT;
 using Constants::BOARD_SIZE;
 using Constants::BOARD_SIDE_LENGTH;
 
+
+typedef int64_t int64;
+typedef uint64_t uint;
+
+
 #endif // !HEADERS_H
