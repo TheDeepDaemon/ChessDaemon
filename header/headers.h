@@ -32,7 +32,7 @@
 
 // how much to scale a piece sprite
 // relative to the square size
-#define PIECE_SCALE 0.66f
+#define PIECE_SCALE 0.75f
 #define GREEN_DOT_SCALE 0.5f
 
 // whether to show a literal grid

@@ -1,11 +1,11 @@
 #ifndef CHESS_BOARD_H
 #define CHESS_BOARD_H
 #include"Headers.h"
-#include"DisplaySystem.h"
 #include"BoardPosition.h"
 #include"ChessPiece.h"
 
 
+struct DisplaySystem;
 
 
 struct BoardState {
@@ -217,12 +217,6 @@ private:
 		const BoardPosition& from,
 		const int row, const int col,
 		const bool isWhite, std::list<Move>& moves);
-
-	inline void addIfIsWhite(const BoardPosition& from, const int row, const int col, std::list<Move>& moves);
-
-	inline void addIfIsBlack(const BoardPosition& from, const int row, const int col, std::list<Move>& moves);
-
-	inline void addIfIsEmpty(const BoardPosition& from, const int row, const int col, std::list<Move>& moves);
 
 	inline void addIfIsColorOrEmpty(
 		const BoardPosition& from, const int row, const int col, const bool isWhite, std::list<Move>& moves);

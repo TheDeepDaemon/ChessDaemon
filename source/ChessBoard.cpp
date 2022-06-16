@@ -1,5 +1,5 @@
 #include"ChessBoard.h"
-
+#include"DisplaySystem.h"
 
 
 ChessBoard::ChessBoard() : BoardState() {}
@@ -226,6 +226,7 @@ void ChessBoard::makeMove(const Move& move) {
 
 	enpassPawn = BoardPosition(-1, -1);
 	const ChessPiece pieceFrom = get(from);
+
 	if (pieceFrom.is(PAWN)) {
 		if (pieceFrom.white) {
 			// if on the second rank

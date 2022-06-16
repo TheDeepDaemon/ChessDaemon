@@ -423,23 +423,7 @@ inline void ChessBoard::addIfIsColor(
 }
 
 
-inline void ChessBoard::addIfIsWhite(const BoardPosition& from, const int row, const int col, std::list<Move>& moves) {
-	if (isWhitePiece(row, col)) {
-		moves.push_back(Move(from, BoardPosition(row, col)));
-	}
-}
 
-inline void ChessBoard::addIfIsBlack(const BoardPosition& from, const int row, const int col, std::list<Move>& moves) {
-	if (isBlackPiece(row, col)) {
-		moves.push_back(Move(from, BoardPosition(row, col)));
-	}
-}
-
-inline void ChessBoard::addIfIsEmpty(const BoardPosition& from, const int row, const int col, std::list<Move>& moves) {
-	if (isEmpty(row, col)) {
-		moves.push_back(Move(from, BoardPosition(row, col)));
-	}
-}
 
 inline void ChessBoard::addIfIsColorOrEmpty(
 	const BoardPosition& from, const int row, const int col, const bool isWhite, std::list<Move>& moves) {
@@ -479,20 +463,53 @@ void ChessBoard::addMovesInDirection(
 }
 
 
+void addPawnPromotions(const ChessBoard::Move& move, std::list<ChessBoard::Move>& moves) {
+	ChessBoard::Move queenPromotion = move;
+	queenPromotion.promotionTo = QUEEN;
+	ChessBoard::Move rookPromotion = move;
+	rookPromotion.promotionTo = ROOK;
+	ChessBoard::Move bishopPromotion = move;
+	bishopPromotion.promotionTo = BISHOP;
+	ChessBoard::Move knightPromotion = move;
+	knightPromotion.promotionTo = KNIGHT;
+
+	moves.push_back(queenPromotion);
+	moves.push_back(rookPromotion);
+	moves.push_back(bishopPromotion);
+	moves.push_back(knightPromotion);
+}
+
+
+template<bool isWhite>
+void addPawnMove(const ChessBoard::Move& move, std::list<ChessBoard::Move>& moves) {
+	const int promotionRow = isWhite ? (BOARD_SIZE - 1) : 0;
+	if (move.to.row == promotionRow) {
+		addPawnPromotions(move, moves);
+	}
+	else {
+		moves.push_back(move);
+	}
+}
+
+
 void ChessBoard::getPawnMoves(const BoardPosition& pos, const bool isWhite, std::list<Move>& moves) {
 
 	if (isWhite) {
 		const int forwardRow = pos.row + 1;
 
 		// pawn capture
-		addIfIsBlack(pos, forwardRow, pos.col + 1, moves);
-		addIfIsBlack(pos, forwardRow, pos.col - 1, moves);
+		if (isBlackPiece(forwardRow, pos.col + 1)) {
+			addPawnMove<true>(Move(pos, BoardPosition(forwardRow, pos.col + 1)), moves);
+		}
+		if (isBlackPiece(forwardRow, pos.col - 1)) {
+			addPawnMove<true>(Move(pos, BoardPosition(forwardRow, pos.col - 1)), moves);
+		}
 
 		// one or two spaces forward
 		if (isEmpty(forwardRow, pos.col)) {
-			moves.push_back(Move(pos, BoardPosition(forwardRow, pos.col)));
+			addPawnMove<true>(Move(pos, BoardPosition(forwardRow, pos.col)), moves);
 			if ((pos.row == 1) && isEmpty(pos.row + 2, pos.col)) {
-				moves.push_back(Move(pos, BoardPosition(pos.row + 2, pos.col)));
+				addPawnMove<true>(Move(pos, BoardPosition(pos.row + 2, pos.col)), moves);
 			}
 		}
 
@@ -512,14 +529,18 @@ void ChessBoard::getPawnMoves(const BoardPosition& pos, const bool isWhite, std:
 		const int forwardRow = pos.row - 1;
 
 		// pawn capture
-		addIfIsWhite(pos, forwardRow, pos.col + 1, moves);
-		addIfIsWhite(pos, forwardRow, pos.col - 1, moves);
+		if (isWhitePiece(forwardRow, pos.col + 1)) {
+			addPawnMove<false>(Move(pos, BoardPosition(forwardRow, pos.col + 1)), moves);
+		}
+		if (isWhitePiece(forwardRow, pos.col - 1)) {
+			addPawnMove<false>(Move(pos, BoardPosition(forwardRow, pos.col - 1)), moves);
+		}
 
 		// one or two spaces forward
 		if (isEmpty(forwardRow, pos.col)) {
-			moves.push_back(Move(pos, BoardPosition(forwardRow, pos.col)));
+			addPawnMove<false>(Move(pos, BoardPosition(forwardRow, pos.col)), moves);
 			if ((pos.row == (BOARD_SIZE - 2)) && isEmpty(pos.row - 2, pos.col)) {
-				moves.push_back(Move(pos, BoardPosition(pos.row - 2, pos.col)));
+				addPawnMove<false>(Move(pos, BoardPosition(pos.row - 2, pos.col)), moves);
 			}
 		}
 
