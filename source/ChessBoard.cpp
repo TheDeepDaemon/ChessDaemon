@@ -326,3 +326,8 @@ ChessBoard ChessBoard::getNextPosition(const Move& move) {
 	newBoard.makeMove(move);
 	return newBoard;
 }
+
+
+void ChessBoard::operator=(const ChessBoard& board) {
+	copyBoard(board);
+}

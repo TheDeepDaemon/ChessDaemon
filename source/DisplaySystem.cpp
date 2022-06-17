@@ -32,6 +32,8 @@ DisplaySystem::DisplaySystem(const string& imagesPath) {
 	for (const std::filesystem::directory_entry& dir_entry : std::filesystem::directory_iterator{ path }) {
 		string name = removeExt(dir_entry.path().filename().string());
 
+		cout << name << "\n";
+
 		// ignore the readme file
 		if (name != "readme") {
 			string imgPath(dir_entry.path().string());

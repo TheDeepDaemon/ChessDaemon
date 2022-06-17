@@ -165,7 +165,6 @@ void System::dropPiece(const BoardPosition& from, const BoardPosition& to) {
 	}
 
 	printGameState();
-
 }
 
 void System::printGameState() {

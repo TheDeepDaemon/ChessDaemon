@@ -9,6 +9,7 @@ struct DisplaySystem;
 
 
 struct BoardState {
+	bool whiteToMove;
 	BoardPosition whiteKing;
 	BoardPosition blackKing;
 	BoardPosition enpassPawn;
@@ -22,6 +23,7 @@ struct BoardState {
 	bool bkRookHasMoved;
 
 	BoardState() :
+		whiteToMove(true),
 		whiteKing(-1, -1), blackKing(-1, -1),
 		enpassPawn(-1, -1), whiteKingHasMoved(true),
 		wqRookHasMoved(true), wkRookHasMoved(true),
@@ -30,6 +32,8 @@ struct BoardState {
 	}
 
 	void copyBoardState(const BoardState& boardState) {
+		whiteToMove = boardState.whiteToMove;
+
 		whiteKing = boardState.whiteKing;
 		blackKing = boardState.blackKing;
 		enpassPawn = boardState.enpassPawn;
@@ -158,7 +162,15 @@ public:
 		copyBoardState(boardState);
 	}
 
+	void operator=(const ChessBoard& board);
+
 private:
+
+	void copyBoard(const ChessBoard& board) {
+		memcpy(boardBuffer, board.boardBuffer, sizeof(ChessPiece) * NUM_SQUARES);
+		copyBoardState(board);
+	}
+
 	// specific piece rules
 	inline bool isLegalPawn(
 		const BoardPosition& from, const BoardPosition& to,
