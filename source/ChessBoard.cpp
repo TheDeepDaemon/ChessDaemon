@@ -86,6 +86,8 @@ void ChessBoard::setupBoard() {
 	bqRookHasMoved = false;
 	bkRookHasMoved = false;
 
+	whiteToMove = true;
+
 }
 
 
@@ -227,6 +229,7 @@ void ChessBoard::movePiece(const BoardPosition& from, const BoardPosition& to) {
 
 
 void ChessBoard::makeMove(const Move& move) {
+	whiteToMove = !whiteToMove;
 	const BoardPosition from = move.from;
 	const BoardPosition to = move.to;
 

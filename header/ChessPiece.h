@@ -59,9 +59,9 @@ struct ChessPiecePosition : public ChessPiece {
 		row(row_), col(col_) {}
 
 	ChessPiecePosition(
-		const ChessPieceType type_, const bool white_,
+		const ChessPiece piece,
 		const BoardPosition& boardPosition) :
-		ChessPiece(type_, white_),
+		ChessPiece(piece),
 		row(boardPosition.row), col(boardPosition.col) {}
 
 	ChessPiecePosition() :
