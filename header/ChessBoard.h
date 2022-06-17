@@ -29,7 +29,7 @@ struct BoardState {
 		bkRookHasMoved(true) {
 	}
 
-	void operator=(const BoardState& boardState) {
+	void copyBoardState(const BoardState& boardState) {
 		whiteKing = boardState.whiteKing;
 		blackKing = boardState.blackKing;
 		enpassPawn = boardState.enpassPawn;
@@ -41,6 +41,10 @@ struct BoardState {
 		blackKingHasMoved = boardState.blackKingHasMoved;
 		bqRookHasMoved = boardState.bqRookHasMoved;
 		bkRookHasMoved = boardState.bkRookHasMoved;
+	}
+
+	void operator=(const BoardState& boardState) {
+		copyBoardState(boardState);
 	}
 
 };
@@ -101,6 +105,7 @@ public:
 	}
 
 	ChessBoard();
+	ChessBoard(const ChessBoard& board);
 
 	void addWhitePiece(const ChessPieceType type, const int row, const int col);
 
@@ -150,17 +155,7 @@ public:
 	ChessBoard getNextPosition(const Move& move);
 
 	void operator=(const BoardState& boardState) {
-		whiteKing = boardState.whiteKing;
-		blackKing = boardState.blackKing;
-		enpassPawn = boardState.enpassPawn;
-
-		whiteKingHasMoved = boardState.whiteKingHasMoved;
-		wqRookHasMoved = boardState.wqRookHasMoved;
-		wkRookHasMoved = boardState.wkRookHasMoved;
-
-		blackKingHasMoved = boardState.blackKingHasMoved;
-		bqRookHasMoved = boardState.bqRookHasMoved;
-		bkRookHasMoved = boardState.bkRookHasMoved;
+		copyBoardState(boardState);
 	}
 
 private:

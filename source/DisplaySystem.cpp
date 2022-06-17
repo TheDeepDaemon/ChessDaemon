@@ -1,5 +1,4 @@
 #include"DisplaySystem.h"
-#include<random>
 #include<filesystem>
 
 
@@ -30,18 +29,20 @@ DisplaySystem::DisplaySystem(const string& imagesPath) {
 
 	std::filesystem::path path = imagesPath;
 
-	for (auto const& dir_entry : std::filesystem::directory_iterator{ path }) {
-		string imgPath(dir_entry.path().string());
+	for (const std::filesystem::directory_entry& dir_entry : std::filesystem::directory_iterator{ path }) {
+		string name = removeExt(dir_entry.path().filename().string());
 
-		Texture* texture = new Texture();
-		texture->loadFromFile(imgPath);
+		// ignore the readme file
+		if (name != "readme") {
+			string imgPath(dir_entry.path().string());
 
-		textures.push_back(texture);
+			Texture* texture = new Texture();
+			texture->loadFromFile(imgPath);
 
-		string sprName = removeExt(dir_entry.path().filename().string());
+			textures.push_back(texture);
 
-		sprites[sprName] = new Sprite(*texture);
-
+			sprites[name] = new Sprite(*texture);
+		}
 	}
 }
 

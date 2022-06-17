@@ -5,6 +5,12 @@
 ChessBoard::ChessBoard() : BoardState() {}
 
 
+ChessBoard::ChessBoard(const ChessBoard& board) {
+	memcpy(boardBuffer, board.boardBuffer, sizeof(ChessPiece) * NUM_SQUARES);
+	copyBoardState(board);
+}
+
+
 void ChessBoard::addWhitePiece(const ChessPieceType type, const int row, const int col) {
 	get(row, col) = ChessPiece(type, true);
 	if (type == KING) {
@@ -314,3 +320,9 @@ void ChessBoard::debugLegalMoves(const BoardPosition& from) {
 
 }
 
+
+ChessBoard ChessBoard::getNextPosition(const Move& move) {
+	ChessBoard newBoard(*this);
+	newBoard.makeMove(move);
+	return newBoard;
+}
