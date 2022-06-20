@@ -54,20 +54,41 @@ struct BoardState {
 };
 
 
+struct Move {
+	BoardPosition from;
+	BoardPosition to;
+	bool enpassant = false;
+	bool castlingKingSide = false;
+	bool castlingQueenSide = false;
+	ChessPieceType promotionTo = EMPTY;
+	Move(const BoardPosition& from_, const BoardPosition& to_) :
+		from(from_), to(to_), enpassant(false),
+		castlingKingSide(false), castlingQueenSide(false), promotionTo(EMPTY) {}
+};
+
+inline bool operator==(const Move& move1, const Move& move2) {
+	return
+		(move1.from == move2.from) &&
+		(move1.to == move2.to) &&
+		(move1.enpassant == move2.enpassant) &&
+		(move1.castlingKingSide == move2.castlingKingSide) &&
+		(move1.castlingQueenSide == move2.castlingQueenSide) &&
+		(move1.promotionTo == move2.promotionTo);
+}
+
+inline bool operator!=(const Move& move1, const Move& move2) {
+	return
+		(move1.from != move2.from) ||
+		(move1.to != move2.to) ||
+		(move1.enpassant != move2.enpassant) ||
+		(move1.castlingKingSide != move2.castlingKingSide) ||
+		(move1.castlingQueenSide != move2.castlingQueenSide) ||
+		(move1.promotionTo != move2.promotionTo);
+}
+
+
 class ChessBoard : public BoardState {
 public:
-
-	struct Move {
-		BoardPosition from;
-		BoardPosition to;
-		bool enpassant = false;
-		bool castlingKingSide = false;
-		bool castlingQueenSide = false;
-		ChessPieceType promotionTo = EMPTY;
-		Move(const BoardPosition& from_, const BoardPosition& to_) :
-			from(from_), to(to_), enpassant(false),
-			castlingKingSide(false), castlingQueenSide(false), promotionTo(EMPTY) {}
-	};
 
 	// buffer to store chess pieces
 	ChessPiece boardBuffer[NUM_SQUARES];
@@ -79,7 +100,7 @@ public:
 
 	// size of the board on screen in pixels
 	const sf::Vector2f boardSizeOnScreen = sf::Vector2f(
-		BOARD_SIZE_ON_SCREEN, BOARD_SIZE_ON_SCREEN);
+		(float)BOARD_SIZE_ON_SCREEN, (float)BOARD_SIZE_ON_SCREEN);
 
 	// size of an individual square
 	const sf::Vector2f squareSize = sf::Vector2f(
@@ -141,8 +162,7 @@ public:
 
 	void getPossibleMoves(const BoardPosition& pos, std::list<Move>& moves);
 
-	void getAllPossibleMoves(const bool white,
-		std::list<Move>& moves);
+	std::list<Move> getAllPossibleMoves(const bool white);
 
 	bool wouldBeInCheck(const bool white, const Move& move);
 
@@ -157,6 +177,10 @@ public:
 	void debugLegalMoves(const BoardPosition& from);
 
 	ChessBoard getNextPosition(const Move& move);
+
+	int countPoints(const bool white) const;
+
+	int totalPoints() const;
 
 	void operator=(const BoardState& boardState) {
 		copyBoardState(boardState);

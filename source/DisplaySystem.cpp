@@ -4,7 +4,6 @@
 
 
 
-
 using std::cout;
 
 
@@ -29,6 +28,7 @@ DisplaySystem::DisplaySystem(const string& imagesPath) {
 
 	std::filesystem::path path = imagesPath;
 
+	// load all sprites
 	for (const std::filesystem::directory_entry& dir_entry : std::filesystem::directory_iterator{ path }) {
 		string name = removeExt(dir_entry.path().filename().string());
 
@@ -44,6 +44,12 @@ DisplaySystem::DisplaySystem(const string& imagesPath) {
 			sprites[name] = new Sprite(*texture);
 		}
 	}
+
+	// load font
+	if (!font.loadFromFile("arial.ttf")) {
+		cout << "Failed to load font\n";
+	}
+
 }
 
 
@@ -147,6 +153,18 @@ sf::FloatRect DisplaySystem::getSpriteBounds(const string& name) {
 	else {
 		return sf::FloatRect();
 	}
+}
+
+
+
+void DisplaySystem::writeText(const string& str, int x, int y, int size) {
+	sf::Text text(str, font);
+
+	text.setPosition(x, y);
+	text.setCharacterSize(size);
+	text.setFillColor(sf::Color::White);
+
+	canvas->draw(text);
 }
 
 

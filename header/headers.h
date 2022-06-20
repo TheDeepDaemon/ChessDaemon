@@ -43,7 +43,16 @@
 #define BOARD_SIZE_ON_SCREEN (std::min(SCREEN_WIDTH, SCREEN_HEIGHT) * 3 / 4)
 
 // how much of the board sprite is edge
-#define BOARD_EDGE 0.06
+#define BOARD_EDGE 0.06f
+
+#define WIN_VALUE 577
+
+#define CPU_IS_ON true
+#define CPU_IS_WHITE false
+
+#define SHUFFLE_MINIMAX_OPTIONS true
+
+#define USES_MULTITHREADING true
 
 
 using std::cout;

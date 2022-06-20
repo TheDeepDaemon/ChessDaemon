@@ -10,6 +10,7 @@ struct DisplaySystem {
 	sf::RenderTexture* canvas = nullptr;
 	std::list<Texture*> textures;
 	std::unordered_map<string, Sprite*> sprites;
+	sf::Font font;
 
 
 	DisplaySystem(const string& imagesPath);
@@ -25,6 +26,8 @@ struct DisplaySystem {
 	void setSpriteSize(const string& name, const float width, const float height);
 
 	void draw(const sf::Drawable& drawable);
+
+	void writeText(const string& str, int x, int y, int size);
 
 	void clear();
 

@@ -2,29 +2,84 @@
 #include<array>
 
 
+System::~System() {
+	if (tree != nullptr) {
+		delete tree;
+	}
+	if (evaluatorThread != nullptr) {
+		delete evaluatorThread;
+	}
+}
+
+
 
 void System::start() {
 
 	board.setupBoard();
 
+	tree = new GameTree(board);
+	
 	board.setCenteredPosition();
 
 }
+
+
+void evaluatePosition(System* sys) {
+	if (sys->tree != nullptr) {
+		sys->tree->findBestMove(sys->depth);
+	}
+
+	sys->doneEvaluating = true;
+}
+
 
 
 void System::update() {
 
 	board.display(&displaySystem, heldPiece.getBoardPosition());
 
-	if (upgradedPawn.isUpgrading) {
-		showPawnUpgrades(upgradedPawn.posTo.row, upgradedPawn.posTo.col, true, 2);
+	if constexpr (CPU_IS_ON) {
+		if (board.whiteToMove == CPU_IS_WHITE) {
+			if (doneEvaluating) {
+				evaluatorThread->join();
+				delete evaluatorThread;
+				evaluatorThread = nullptr;
+				doneEvaluating = false;
+
+				Move move = tree->chosenMove;
+				makeMove(move);
+			}
+			else if (evaluatorThread == nullptr) {
+				evaluatorThread = new std::thread(evaluatePosition, this);
+			}
+			displaySystem.writeText(
+				"CPU is thinking...", 20, board.boardPosition.y, 24);
+		}
+		else {
+			if (upgradedPawn.isUpgrading) {
+				showPawnUpgrades(upgradedPawn.posTo.row, upgradedPawn.posTo.col, true, 2);
+			}
+			else {
+				if (holdingPiece) {
+					showHoldingPiece();
+				}
+				else if (inputSystem.mouseDown) {
+					pickupPiece();
+				}
+			}
+		}
 	}
 	else {
-		if (holdingPiece) {
-			showHoldingPiece();
+		if (upgradedPawn.isUpgrading) {
+			showPawnUpgrades(upgradedPawn.posTo.row, upgradedPawn.posTo.col, true, 2);
 		}
-		else if (inputSystem.mouseDown) {
-			pickupPiece();
+		else {
+			if (holdingPiece) {
+				showHoldingPiece();
+			}
+			else if (inputSystem.mouseDown) {
+				pickupPiece();
+			}
 		}
 	}
 
@@ -84,12 +139,20 @@ void System::showHoldingPiece() {
 }
 
 
+void System::makeMove(const Move& move) {
+	board.makeMove(move);
+	if (tree != nullptr) {
+		tree->makeMove(move);
+	}
+}
+
+
 void System::dropPiece(const BoardPosition& from, const BoardPosition& to) {
 
-	for (const ChessBoard::Move& move : availableMoves) {
+	for (const Move& move : availableMoves) {
 		if (move.from == from && move.to == to) {
 			if (!board.wouldBeInCheck(board.get(from).white, move)) {
-				board.makeMove(move);
+				makeMove(move);
 			}
 			break;
 		}
@@ -97,6 +160,7 @@ void System::dropPiece(const BoardPosition& from, const BoardPosition& to) {
 
 	printGameState();
 }
+
 
 void System::printGameState() {
 	if (board.isKingInCheck(true)) {
@@ -165,12 +229,12 @@ void System::showPawnUpgrades(const int row, const int col, const bool white, co
 		for (unsigned i = 0; i < upgrades.size(); i++) {
 			if (isInBounds(sf::FloatRect(posOnScreen + (offset * (float)i), squareSize), mousePos)) {
 
-				ChessBoard::Move move(upgradedPawn.posFrom, upgradedPawn.posTo);
+				Move move(upgradedPawn.posFrom, upgradedPawn.posTo);
 
 				move.promotionTo = upgrades[i];
 
 				if (!board.wouldBeInCheck(white, move)) {
-					board.makeMove(move);
+					makeMove(move);
 				}
 
 				upgradedPawn.isUpgrading = false;

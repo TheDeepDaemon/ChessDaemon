@@ -463,14 +463,14 @@ void ChessBoard::addMovesInDirection(
 }
 
 
-void addPawnPromotions(const ChessBoard::Move& move, std::list<ChessBoard::Move>& moves) {
-	ChessBoard::Move queenPromotion = move;
+void addPawnPromotions(const Move& move, std::list<Move>& moves) {
+	Move queenPromotion = move;
 	queenPromotion.promotionTo = QUEEN;
-	ChessBoard::Move rookPromotion = move;
+	Move rookPromotion = move;
 	rookPromotion.promotionTo = ROOK;
-	ChessBoard::Move bishopPromotion = move;
+	Move bishopPromotion = move;
 	bishopPromotion.promotionTo = BISHOP;
-	ChessBoard::Move knightPromotion = move;
+	Move knightPromotion = move;
 	knightPromotion.promotionTo = KNIGHT;
 
 	moves.push_back(queenPromotion);
@@ -481,7 +481,7 @@ void addPawnPromotions(const ChessBoard::Move& move, std::list<ChessBoard::Move>
 
 
 template<bool isWhite>
-void addPawnMove(const ChessBoard::Move& move, std::list<ChessBoard::Move>& moves) {
+void addPawnMove(const Move& move, std::list<Move>& moves) {
 	const int promotionRow = isWhite ? (BOARD_SIZE - 1) : 0;
 	if (move.to.row == promotionRow) {
 		addPawnPromotions(move, moves);
@@ -698,8 +698,8 @@ void ChessBoard::getPossibleMoves(const BoardPosition& pos, std::list<Move>& mov
 
 
 
-void ChessBoard::getAllPossibleMoves(
-	const bool white, std::list<Move>& moves) {
+std::list<Move> ChessBoard::getAllPossibleMoves(const bool white) {
+	std::list<Move> moves;
 	for (int i = 0; i < BOARD_SIZE; i++) {
 		for (int j = 0; j < BOARD_SIZE; j++) {
 			const int row = i;
@@ -715,6 +715,7 @@ void ChessBoard::getAllPossibleMoves(
 			}
 		}
 	}
+	return moves;
 }
 
 
@@ -773,9 +774,8 @@ bool ChessBoard::wouldBeInCheck(const bool white, const Move& move) {
 
 bool ChessBoard::isCheckMated(const bool white) {
 	if (isKingInCheck(white)) {
-		std::list<Move> moves;
-		getAllPossibleMoves(white, moves);
-
+		std::list<Move> moves = getAllPossibleMoves(white);
+		
 		// look through all possible moves that
 		// can be made
 		for (const Move& move : moves) {
@@ -797,9 +797,8 @@ bool ChessBoard::isCheckMated(const bool white) {
 
 bool ChessBoard::isDraw(const bool white) {
 	if (!isKingInCheck(white)) {
-		std::list<Move> moves;
-		getAllPossibleMoves(white, moves);
-
+		std::list<Move> moves = getAllPossibleMoves(white);
+		
 		for (const Move& move : moves) {
 			if (!wouldBeInCheck(white, move)) {
 				return false;

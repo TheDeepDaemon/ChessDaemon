@@ -331,6 +331,48 @@ ChessBoard ChessBoard::getNextPosition(const Move& move) {
 }
 
 
+
+int getPieceValue(const ChessPieceType pieceType) {
+	switch (pieceType)
+	{
+	case PAWN:
+		return 1;
+	case KNIGHT:
+		return 3;
+	case BISHOP:
+		return 3;
+	case ROOK:
+		return 5;
+	case QUEEN:
+		return 9;
+	default:
+		return 0;
+	}
+}
+
+
+
+int ChessBoard::countPoints(const bool white) const {
+	int total = 0;
+	for (int i = 0; i < NUM_SQUARES; i++) {
+		ChessPiece p = boardBuffer[i];
+		if (p.white == white) {
+			total += getPieceValue(p.type);
+		}
+	}
+	return total;
+}
+
+
+int ChessBoard::totalPoints() const {
+	int whitePoints = countPoints(true);
+	int blackPoints = countPoints(false);
+	return whitePoints - blackPoints;
+}
+
+
+
+
 void ChessBoard::operator=(const ChessBoard& board) {
 	copyBoard(board);
 }

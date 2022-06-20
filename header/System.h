@@ -3,6 +3,8 @@
 #include"DisplaySystem.h"
 #include"ChessBoard.h"
 #include"InputSystem.h"
+#include"GameTree.h"
+#include<thread>
 
 
 struct System {
@@ -11,6 +13,13 @@ struct System {
 	DisplaySystem displaySystem;
 
 	ChessBoard board;
+
+	GameTree* tree = nullptr;
+	const int depth = 2;
+
+	std::thread* evaluatorThread = nullptr;
+	bool doneEvaluating = false;
+
 
 	bool holdingPiece = false;
 	ChessPiecePosition heldPiece;
@@ -22,10 +31,11 @@ struct System {
 		bool color = true;
 	} upgradedPawn;
 
-	std::list<ChessBoard::Move> availableMoves;
+	std::list<Move> availableMoves;
 
 	System(const string& imagesPath) : displaySystem(imagesPath) {}
 
+	~System();
 
 	void start();
 
@@ -36,6 +46,8 @@ struct System {
 	void showHoldingPiece();
 
 	void dropPiece(const BoardPosition& from, const BoardPosition& to);
+
+	void makeMove(const Move& move);
 
 	void showPawnUpgrades(const int row, const int col, const bool white, const float padding);
 
