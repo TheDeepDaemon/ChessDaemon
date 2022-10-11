@@ -1,5 +1,5 @@
 # ChessDaemon
-My chess engine
+My chess engine.
 
 This is a chess engine I am working on. The final goal is to implement a neural network that plays chess. 
 So far, a minimax algorithm has been implemented. 
